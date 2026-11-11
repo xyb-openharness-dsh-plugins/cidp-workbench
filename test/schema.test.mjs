@@ -54,6 +54,7 @@ test('schema：更正链（ver + superseded_by）与 in_use 候选语义', () =>
   db.prepare("INSERT INTO profile_facts (profile_key, fact_key, fact_value, ver) VALUES ('p1', '确诊经过', '医生原话 v2', 2)").run()
   const vers = db.prepare("SELECT ver FROM profile_facts WHERE profile_key='p1' AND fact_key='确诊经过' ORDER BY ver").all().map(r => r.ver)
   assert.deepEqual(vers, [1, 2], '更正=新增版本，历史保留')
+  db.prepare("INSERT INTO import_batches (profile_key, status) VALUES ('p1', 'pending')").run()
   db.prepare("INSERT INTO import_candidates (batch_id, target_table, payload, in_use) VALUES (1, 'lab_results', '{}', 0)").run()
   const cand = db.prepare('SELECT in_use FROM import_candidates').get()
   assert.equal(cand.in_use, 0, '候选缺省未采用，不进事实层')
