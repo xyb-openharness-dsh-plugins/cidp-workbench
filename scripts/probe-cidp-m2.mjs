@@ -319,6 +319,25 @@ async function main() {
   }))
   await page.evaluate(() => document.querySelector('[data-action="dialog-close"]').click())
   t('CFG1', '设置弹层打开且三 tab（工作区/MinerU/临床数据库）', cfg.open && cfg.tabs.join('|') === '工作区|文档解析（MinerU）|临床数据库' && cfg.hasMineru, cfg)
+  /* 返工①：资料目录选择——对话框真实表单 + 口径 + 分形态诚实行为（原型态无服务端 → 明说示意） */
+  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.page = 'dash'; a.render() })
+  await page.evaluate(() => document.querySelector('[data-action="open-store"]').click())
+  const rootDlg = await page.evaluate(() => ({
+    open: document.querySelector('#dialog').open,
+    input: !!document.querySelector('#root-input'),
+    mouth: document.querySelector('#dialog').innerText.includes('拒绝主目录、桌面、下载根目录、tmp'),
+    honest: document.querySelector('#dialog').innerText.includes('不会挂载目录'),
+    noServerBtn: !document.querySelector('[data-action="save-root"]')
+  }))
+  await page.evaluate(() => document.querySelector('[data-action="dialog-close"]').click())
+  t('ROOT1', '资料目录对话框：真实表单 + 口径原文 + 原型态明说「不会挂载目录」（无服务端不出假按钮）', rootDlg.open && rootDlg.input && rootDlg.mouth && rootDlg.honest && rootDlg.noServerBtn, rootDlg)
+  /* 返工②：dev-server 真实切换由 test/api-root.test.mjs 服务端断言；此处验 UI 锚点齐全 */
+  const rootLabel = await page.evaluate(() => {
+    const a = window.__CIDP_APP__
+    a.state.page = 'dash'; a.render()
+    return { hasChangeBtn: !!document.querySelector('[data-action="open-store"]') }
+  })
+  t('ROOT2', '工作区 tab：更改位置入口在（服务端行为由 api-root 测试覆盖）', rootLabel.hasChangeBtn, rootLabel)
   /* 35 号四段链路断言（E2–E8）：建档/检索/匹配/收藏，全部真实功能 */
   await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.profileId = 'demo-b'; a.state.page = 'clinical'; a.state.sub.clinical = 'facts'; a.render() })
   const cl1 = await page.evaluate(() => {
@@ -357,9 +376,9 @@ async function main() {
   await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.sub.clinical = 'saved'; a.render() })
   const cl4 = await page.evaluate(() => {
     const txt = document.querySelector('#main').innerText
-    return { rows: document.querySelectorAll('#main table tbody tr').length, noBar: !txt.includes('进度') || txt.includes('不画进度条'), onlyLocal: txt.includes('只存本机') }
+    return { rows: document.querySelectorAll('#main table tbody tr').length, noBar: txt.includes('不画进度条'), onlyLocal: txt.includes('存本机') }
   })
-  t('CLIN4', '收藏子页：收藏 1 条进表 + 无进度条声明 + 只存本机', cl4.rows >= 1 && cl4.noBar && cl4.onlyLocal, cl4)
+  t('CLIN4', '收藏子页：收藏 1 条进表 + 无进度条声明 + 存本机口径', cl4.rows >= 1 && cl4.noBar && cl4.onlyLocal, cl4)
   await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.sub.clinical = 'match'; a.render() })
   await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.page = 'dash'; a.render() })
   const tiles = await page.evaluate(() => ({ tiles: document.querySelectorAll('.stat-tile').length }))

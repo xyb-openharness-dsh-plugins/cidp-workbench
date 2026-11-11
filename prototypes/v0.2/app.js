@@ -6,7 +6,7 @@
 (function (global) {
   'use strict'
 
-  var APP_INFO = { version: "v0.1.0", build: "2026-11-11" }
+  var APP_INFO = { version: "v0.2.0", build: "2026-11-12" }
   var DATA = window.DEMO_DATA
   var TODAY = DATA.TODAY
 
@@ -905,19 +905,19 @@
       }).join('') + '</tbody></table></div><p class="scroll-hint">← 左右滑动查看 →</p>'
   }
   /* ③ 匹配：分层 + 逐条证据链；百分数只在展示层算（35 号 E3③/E4/E7） */
-  function matchPool() {
+  function trialMatchPool() {
     return window.__CIDP_TRIAL_POOL__ || (window.DEMO_DATA.trialsDemo || [])
   }
-  function matchPoolNote() {
+  function trialMatchPoolNote() {
     return window.__CIDP_TRIAL_POOL__
       ? '候选池口径：本机快照 190 条中参与检索的前 ' + window.__CIDP_TRIAL_POOL__.length + ' 条（快照日期 2026-11-12）——<b>不是全库扫描</b>，也不是按你的条件全量筛选；可在「检索」页按关键词缩小。'
       : '候选池口径：本页演示内置 5 条<b>虚构示例</b>；开发版为本机快照 190 条中参与检索的条目——<b>不是全库扫描</b>。'
   }
   function clinicalMatch() {
-    var pool = matchPool()
-    var cards = pool.map(function (r) { return matchCard(r) }).join('')
+    var pool = trialMatchPool()
+    var cards = pool.map(function (r) { return trialMatchCard(r) }).join('')
     return '<section class="card"><h3>匹配结果</h3>' +
-      '<p class="notice plain">' + matchPoolNote() + ' 偏好：<b>' + esc(prefLabel()) + '</b>（可在「建档」改）。百分数只在展示层计算，不入库、不写任何判读列。</p>' +
+      '<p class="notice plain">' + trialMatchPoolNote() + ' 偏好：<b>' + esc(prefLabel()) + '</b>（可在「建档」改）。符合度百分数只在展示层计算：档位只有「字段都对得上 / 字段部分对得上」两档，<b>不是入组资格</b>，也不代表效果；不入库、不写任何判读列。</p>' +
       '<div class="grid" id="match-cards">' + (cards || '<div class="empty">没有可匹配的候选。</div>') + '</div>' +
       '<p class="notice plain">本机快照只存登记的结构化字段，<b>入排标准请到官方登记页核对</b>——这里的留白会被读成「已经判过了」。</p></section>'
   }
@@ -925,7 +925,7 @@
     return { all: '研究类型不限', interventional: '偏好介入性', observational: '偏好观察性' }[state.trialPref] || '研究类型不限'
   }
   /* 纯函数匹配（window.CidpTrialMatch，lib 形态可被 node 测试断言） */
-  function matchCard(r) {
+  function trialMatchCard(r) {
     var M = window.CidpTrialMatch
     var facts = { title: r.title || '', studyType: r.studyType || '' }
     var items = M.items(facts, { type: state.trialPref })
@@ -958,7 +958,7 @@
   function clinicalSaved() {
     var saved = loadSaved()
     var pool = {}
-    ;(matchPool().concat(window.DEMO_DATA.trialsDemo || [])).forEach(function (r) { pool[r.recordId] = r })
+    ;(trialMatchPool().concat(window.DEMO_DATA.trialsDemo || [])).forEach(function (r) { pool[r.recordId] = r })
     return '<section class="card"><h3>我留的登记</h3>' +
       (saved.length ? '<div class="table-wrap"><table><thead><tr><th>登记</th><th>收藏日期</th><th>阶段</th><th>操作</th></tr></thead><tbody>' +
         saved.map(function (x) {
@@ -1293,7 +1293,7 @@
       var sid = btn.getAttribute('data-id')
       var list = loadSaved()
       if (!list.some(function (x) { return x.key === sid })) {
-        var src = matchPool().concat(window.DEMO_DATA.trialsDemo || []).find(function (r) { return r.recordId === sid }) || {}
+        var src = trialMatchPool().concat(window.DEMO_DATA.trialsDemo || []).find(function (r) { return r.recordId === sid }) || {}
         list.push({ key: sid, title: src.title || '', savedOn: TODAY, state: '在跟' })
         saveSaved(list)
         syncSavedToServer('save', src && src.recordId ? src : { recordId: sid, title: src.title || '' })

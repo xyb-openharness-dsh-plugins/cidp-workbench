@@ -33,7 +33,7 @@ test('ui-parity: app.js 只追加不修改（原型主体是产物的前缀）',
   const proto = readFileSync(join(ROOT, 'prototypes/v0.2/app.js'), 'utf8');
   const pub = readFileSync(join(OUT, 'app.js'), 'utf8');
   assert.ok(pub.startsWith(proto.replace(
-    'var APP_INFO = { version: "v0.1.0", build: "2026-11-11" }',
+    'var APP_INFO = { version: "v0.2.0", build: "2026-11-12" }',
     'var APP_INFO = { version: "__VERSION_DISPLAY__", build: "__BUILD_DATE__" }')), 'app.js 主体不是原型前缀');
   assert.ok(pub.length > proto.length, 'app.js 追加块缺失');
 });
@@ -42,10 +42,10 @@ test('ui-parity: index.html 替换点只允许 4 处（标题/横幅/ver-chip/�
   const proto = readFileSync(join(ROOT, 'prototypes/v0.2/index.html'), 'utf8');
   const pub = readFileSync(join(OUT, 'index.html'), 'utf8');
   const spots = [
-    ['<title>小髓宝 MyelinPal · CIDP 工作台（交互原型 v0.1）</title>', '<title>小髓宝 MyelinPal · CIDP 工作台</title>'],
-    ['交互原型 v0.1 · 全部为模拟资料 · 合成示例', '开发版 · 本机数据 · 不上传'],
-    ['<span class="ver-chip" id="ver-chip">v0.1.0</span>', '<span class="ver-chip" id="ver-chip">__VERSION_DISPLAY__</span>'],
-    ['<b id="app-version">v0.1.0</b><em id="app-build">2026-11-11</em>', '<b id="app-version">__VERSION_DISPLAY__</b><em id="app-build">__BUILD_DATE__</em>'],
+    ['<title>小髓宝 MyelinPal · CIDP 工作台（交互原型 v0.2）</title>', '<title>小髓宝 MyelinPal · CIDP 工作台</title>'],
+    ['交互原型 v0.2 · 全部为模拟资料 · 合成示例', '开发版 · 本机数据 · 不上传'],
+    ['<span class="ver-chip" id="ver-chip">v0.2.0</span>', '<span class="ver-chip" id="ver-chip">__VERSION_DISPLAY__</span>'],
+    ['<b id="app-version">v0.2.0</b><em id="app-build">2026-11-12</em>', '<b id="app-version">__VERSION_DISPLAY__</b><em id="app-build">__BUILD_DATE__</em>'],
   ];
   for (const [oldSeg, newSeg] of spots) {
     assert.ok(proto.includes(oldSeg), `原型缺基准段：${oldSeg.slice(0, 40)}`);
@@ -53,9 +53,9 @@ test('ui-parity: index.html 替换点只允许 4 处（标题/横幅/ver-chip/�
   }
   /* 除替换点外逐行一致：把替换段换回原型写法后应与原型完全相同 */
   let reverted = pub
-    .replace('<title>小髓宝 MyelinPal · CIDP 工作台</title>\n<meta name="robots" content="noindex,nofollow">', '<title>小髓宝 MyelinPal · CIDP 工作台（交互原型 v0.1）</title>')
-    .replace('<span>开发版 · 本机数据 · 不上传 · AI 面板由宿主提供 · 业务数据仍为演示内容直到导入真实资料</span>\n    <span>版本 <b>__VERSION_DISPLAY__</b></span>', '<span>交互原型 v0.1 · 全部为模拟资料 · 合成示例</span>\n    <span>仅本页演示 · 未接入 DSH/AI</span>')
-    .replace('<span class="ver-chip" id="ver-chip">__VERSION_DISPLAY__</span>', '<span class="ver-chip" id="ver-chip">v0.1.0</span>')
-    .replace('<b id="app-version">__VERSION_DISPLAY__</b><em id="app-build">__BUILD_DATE__</em>', '<b id="app-version">v0.1.0</b><em id="app-build">2026-11-11</em>');
+    .replace('<title>小髓宝 MyelinPal · CIDP 工作台</title>\n<meta name="robots" content="noindex,nofollow">', '<title>小髓宝 MyelinPal · CIDP 工作台（交互原型 v0.2）</title>')
+    .replace('<span>开发版 · 本机数据 · 不上传 · AI 面板由宿主提供 · 业务数据仍为演示内容直到导入真实资料</span>\n    <span>版本 <b>__VERSION_DISPLAY__</b></span>', '<span>交互原型 v0.2 · 全部为模拟资料 · 合成示例</span>\n    <span>仅本页演示 · 未接入 DSH/AI</span>')
+    .replace('<span class="ver-chip" id="ver-chip">__VERSION_DISPLAY__</span>', '<span class="ver-chip" id="ver-chip">v0.2.0</span>')
+    .replace('<b id="app-version">__VERSION_DISPLAY__</b><em id="app-build">__BUILD_DATE__</em>', '<b id="app-version">v0.2.0</b><em id="app-build">2026-11-12</em>');
   assert.equal(reverted, proto, 'index.html 白名单之外存在字符改动');
 });

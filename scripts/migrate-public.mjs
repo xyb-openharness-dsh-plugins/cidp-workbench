@@ -22,15 +22,15 @@ const OUT = join(ROOT, 'public');
 const CHECK = process.argv.includes('--check');
 const FILES = ['index.html', 'app.js', 'style.css', 'demo-data.js', 'primer-data.js', 'primer.js', 'primer.css', 'trial-match.js'];
 
-const TITLE_OLD = '<title>小髓宝 MyelinPal · CIDP 工作台（交互原型 v0.1）</title>';
+const TITLE_OLD = '<title>小髓宝 MyelinPal · CIDP 工作台（交互原型 v0.2）</title>';
 const TITLE_NEW = '<title>小髓宝 MyelinPal · CIDP 工作台</title>\n<meta name="robots" content="noindex,nofollow">';
-const BAR_OLD = '    <span>交互原型 v0.1 · 全部为模拟资料 · 合成示例</span>\n    <span>仅本页演示 · 未接入 DSH/AI</span>';
+const BAR_OLD = '    <span>交互原型 v0.2 · 全部为模拟资料 · 合成示例</span>\n    <span>仅本页演示 · 未接入 DSH/AI</span>';
 const BAR_NEW = '    <span>开发版 · 本机数据 · 不上传 · AI 面板由宿主提供 · 业务数据仍为演示内容直到导入真实资料</span>\n    <span>版本 <b>__VERSION_DISPLAY__</b></span>';
-const CHIP_OLD = '<span class="ver-chip" id="ver-chip">v0.1.0</span>';
+const CHIP_OLD = '<span class="ver-chip" id="ver-chip">v0.2.0</span>';
 const CHIP_NEW = '<span class="ver-chip" id="ver-chip">__VERSION_DISPLAY__</span>';
-const FOOT_OLD = '<b id="app-version">v0.1.0</b><em id="app-build">2026-11-11</em>';
+const FOOT_OLD = '<b id="app-version">v0.2.0</b><em id="app-build">2026-11-12</em>';
 const FOOT_NEW = '<b id="app-version">__VERSION_DISPLAY__</b><em id="app-build">__BUILD_DATE__</em>';
-const APPINFO_OLD = 'var APP_INFO = { version: "v0.1.0", build: "2026-11-11" }';
+const APPINFO_OLD = 'var APP_INFO = { version: "v0.2.0", build: "2026-11-12" }';
 const APPINFO_NEW = 'var APP_INFO = { version: "__VERSION_DISPLAY__", build: "__BUILD_DATE__" }';
 
 const BOOT_BLOCK = `
