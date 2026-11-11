@@ -1,77 +1,54 @@
-# 项目规格 v0.1
+# 项目规格 · cidp-workbench（小髓宝 MyelinPal CIDP 工作台）
 
-状态：草案。确认人/日期：待补。不得把本模板当成已确认业务。
+版本：v0.1 · 2026-11-12 · 状态：M1 草案（无人值守默认值落 DEV-PLAN §五，晨审追认；用户确认方向不等于 SPEC 确认）
 
-## 设计者与研究/场景依据
+## 一、问题、用户与最小闭环
 
-先按 DESIGN-PROMPT 与 DESIGNER-BRIEF 对齐角色、研究方法、成功标准及取舍原则，继承已有用户/场景/流程。用户需求证据和专业约束分开；癌种项目不把医生任务当患者功能。记录证据/假设→需求→候选场景取舍→功能→验收，独立高能力模型实际review写入 DESIGN-REVIEW。价值/范围变更先讨论后修订。
+- **输入**：患者/家属手上的 IVIG 输注记录、复发—缓解经过、化验与电生理报告、医生口头方案、费用票据。
+- **动作**：按次登记（输注/复发/缓解/化验/检查/用药方案/费用）、看趋势、备复诊。
+- **输出**：可追溯的病程档案——输注间隔一览、复发—缓解时间线、指标趋势、费用汇总、复诊问题清单。
+- **失败恢复**：录入表单校验有提示；AI 候选拒收零副作用；更正=新增版本（无裸删除）。
+- **成功标准**：患者复诊前 5 分钟内能列出「最近输注与间隔、最近复发经过、想问医生的 5 个问题」。
+- 最小闭环：登记一笔输注 → 看板「距上次输注 N 天」更新 → 复诊清单引用该记录。
 
-## 问题、用户与最小闭环
+## 二、方案与 ADR
 
-引用 BRIEF，说明输入、动作、输出、失败恢复与成功标准。
+- **ADR-1 布局**：business-first（主区业务 + 右侧原生 AI 面板 35%，可拖 25–45%）。理由：宿主 customFrame 家族基线（40 号）；替代（AI 浮层/左侧）违反 Q5/A9，否决。
+- **ADR-2 会话激活**：按宿主归属服务判定会话（`service.ownsSession` + `currentSession`），无会话走 `service.newSession(defaultWorkspace?.()?.workspaceId)`；禁 `Boolean(conversation)` 与 `ensureSession({})`（0.2.1 小暖宝实测教训 + check-agent-pane-contract 7 条断言）。已在骨架 lib/client.js 实现，静态 7/7。
+- **ADR-3 试验线**：预设裁剪候选，M4 实测快照量级后定夺（DEV-PLAN §四）；裁剪时设置·临床数据库 tab 如实声明。
+- **ADR-4 非肿瘤表达**：复发—缓解区间带（非症状色块日历）；「缓解中第 N 天/复发中第 N 天」（非 D+N）；医生原话照抄（非改写）。
+- 目标宿主能力：desktopWorkbenches.register / newSession / defaultWorkspace / ownsSession / subscribe / sessions.scope——宿主合同见 docs/02-DSH-CONTRACT.md；装机核验在 M6。
 
-## 方案与 ADR
+## 三、功能范围
 
-比较 2–3 个真实候选方案的效率、运行条件与维护成本，记录选择。明确布局为何符合主任务；目标宿主能力表：能力/官方合同/本机核验/替代路径。不要复用未经核验的版本号。
+FEATURE-INVENTORY 一级/二级页面见 INTERACTION-DESIGN §一（10 页 + subpages）；功能线 F1–F11 见 DEV-REQUIREMENTS §二；每页有 AI 候选通道（IP5），AI 输出永远是「候选/预览」。
 
-## 功能范围
+## 四、数据与 API
 
-链接 FEATURE-INVENTORY.csv：一级/二级页面、隐藏内容、字段、所有操作和结果回顾。稳定功能 ID 映射组件、API、测试。
+- 实体：profile（档案 2 表组）、metric（指标 3 表组）、infusion、flare、exam、medication_plan、cost、hospital、visit_item、record_asset——通用 7 + 专属 N 在 M3 schema/0001_initial.sql 冻结。
+- 事实层唯一：手工/AI/导入三通道写同一事实层与更正链（IP9）；AI 候选不入事实层，核对后才入。
+- 外部信息合同：疾病概要四段数据（来源四态，EVIDENCE-LEDGER E1–E7）；临床试验快照（如保留，M4 四件套）；未知值显式 null；时间窗/排序在 M3 定。
 
-## 数据与 API
+## 五、设置与配置页面
 
-实体/关系/表、事实与候选、来源、时区与单位、迁移、读模型版本。链接 SCHEMA 与 API-CONTRACT；核心校验、错误与并发/取消语义。
+照 breast v0.4 CFG_TABS 三 tab（弹层，不占一级导航）：工作区（资料目录口径「拒绝主目录/桌面/下载根/tmp」）／文档解析 MinerU（未接入形态，勾选与保存不联网如实标注）／临床数据库（快照状态与裁剪声明，与临床页同口径）。详见 docs/SETTINGS-DESIGN.md。
 
-外部信息合同：来源及获取/核实时点、有效范围与期限、未知/冲突/过期/不可获取、事实与推断/建议/用户采纳的边界；刷新策略及哪些关键动作需要复核。获取成功不能直接设置为已核实。
+## 六、UI 与原型一致性
 
-## 设置与配置页面
+原型 prototypes/v0.2（index.html/app.js/style.css/demo-data.js + primer 三件套）；语义 token；字号 12.5–15；三档断点 1180/900/600；ui-parity 双闸（check-ui-parity）在 M5 建。偏离逐条记录进 PARITY。
 
-引用 docs/SETTINGS-DESIGN.md。所有业务页设置入口、患者资料目录/迁移边界、凭据来源/状态/安全、云端逐文件同意、本地降级、临床参考数据包来源/版本/状态、草稿保存/取消/错误恢复、功能ID和验收：...
+## 七、DSH 原生 AI 对话入口与面板
 
-## UI 与原型一致性
+顶栏「AI 对话」固定序位；五态（展开/收起/隐藏/重开/窄屏抽屉）；无会话经宿主 newSession（取消/失败提示在面板 note 位，ADR-2）；草稿只填不发；`cidp:agent-draft` 桥携带本页事实上下文（无判定词），业务页 preventDefault 后 postMessage。装机人工走查项（V3）：面板出现/取消目录重试提示/失败原因提示/已有会话开合。
 
-原型文件/hash/确认时间、语义 token、布局、字体、大字、图表/动效、键盘与 reduce motion。链接 PARITY；偏离逐条记录依据和替代。
+## 八、实施与验证
 
-## 资源与 Agent
+M2 原型（探针显式 --url）→ M3 schema 冻结 → M4 临床库 → M5 移植（src→lib→public，ui-parity）→ M6 装机（check-install 四要素 + verify-desktop-load）→ M7/M8 草稿。每步证据落 PROGRESS.md 与 signoffs/。
 
-适用时填写资料目录/原生会话双状态：判定来源、当前项目与会话映射、归属异常、切换代次失效、恢复入口。见 docs/09-WORKBENCH-STATUS.md；不适用写理由。
+## 九、交付与发布
 
-assets 清单/许可证/包体；本地与云能力、必要依赖和降级。角色 prompt 版本、任务快照、会话 owner、工作区选择、保留草稿、输出归档/候选回写。后台调度未验不宣称可用。
+版本四处同源（VERSION/package.json/CHANGELOG/README）；M7 tag+release 与 M8 BACKLOG PR 只备草稿（docs/release-draft/），不发布不推送；市场投稿不适用（未授权）。
 
-### DSH 原生 AI 对话入口与面板
+## 十、互动设计与确认关口
 
-若工作台接入 DSH 原生 Agent：在全局顶栏提供可见的“AI 对话/打开 AI 对话”入口，写明默认开/关、连接中/已连接/不可用状态、首次点击后的创建或复用规则。原生对话面板可独立隐藏并重新打开；隐藏不结束会话、不清空工作台筛选/表单/滚动状态，也不丢弃原生草稿。面板展开后可调宽，并记录默认宽度、最小/最大边界、键盘操作与持久化范围。
-
-布局必须区分宿主形态：CustomFrame 使用右侧原生面板和可访问的拖动分隔器；默认 35%、范围 25%–45% 是社区基线，项目可依据原型明确确认后调整。split 形态下不得另造第二个宽度状态或假 splitter；宽度只能通过目标 Desktop 支持的宿主布局合同调整。宿主不支持隐藏、重开或调宽时，列出实际限制和替代交互，不得用工作台自制聊天窗冒充原生能力。细节引用 `prompts/DSH-AGENT-PANE-INTEGRATION.md` 与 `docs/20-AGENT-PANE-DESIGN.md`，并记录 HTML 状态稿及目标 Desktop 实测证据。
-
-## 实施与验证
-
-按接入基线→数据/API→共享组件→完整 Tab→跨页回归→包/实机分任务。每项任务有依赖、文件边界、验收证据和状态。已有代码先比较再补齐，不盲目重写。
-
-## 交付与发布
-
-包版本/显示来源、安装入口/profile、官方第 8 节自测、数据保留、Demo 清理、回滚、未验证项。分别定义本机安装、业务仓库 Git 推送、GitHub Release/npm、Awesome Workbench 市场目录 PR 的目标和验收；这些是不同交付，按授权范围执行。记录市场选用的来源（npm / YAML 显式 tarball / 默认分支源码）；GitHub Release 不会自动变成市场安装源。未授权市场投稿时写“不适用”，不创建PR。
-
-详细命令与当版官方规则见 `docs/10-MARKET-PUBLISHING.md`；项目级版本、tag、包 hash、安装Profile、发布链接、PR状态和回滚记录写入 `docs/RELEASE.md`。spec review只评审发布设计是否完整，不代替安装实测、官方验收或市场维护者审核。
-
-## 互动设计与确认关口
-
-引用 DESIGN-SESSION 与 UI-DESIGN：模板就绪/填写/待确认/已确认的当前状态、未决项、确认范围/人/日期。所用 UI 技能与替代方法、实际预览证据。数据等级与事实/文件/记忆/缓存分工引用 SCHEMA；选型理由、更新/失效与降级映射验收。设计修订记录影响的功能 ID，未确认模块不记为开发完成。
-
-## HTML原型先行（业务开发前关口）
-
-HTML路径/版本/hash、实际浏览器/尺寸/关键交互证据：...
-用户确认版本/范围/人/日期：待确认；未确认范围不得进入正式业务开发。
-顺序：需求与数据边界草案→HTML交互UI→实际预览→用户确认→对应业务实现。
-
-## 数据模型演进关口
-
-领域事实/关系、工作流实例/版本/状态、页面读模型/偏好分别由谁维护：...
-SCHEMA变化矩阵：导航/布局、多视图、字段/指标扩展、流程插入/跳过/重开、来源纠正/删除、旧库/旧客户端。
-每类变化的API兼容/投影更新/迁移、备份/恢复/回退证据：...
-完整要求见docs/14-HTML-AND-DATA-CONTRACT.md；模拟原型结构不是最终表。
-
-
-## HTML确认与数据演进约束
-
-先交付可交互HTML工作台，记录路径/版本/hash、实际预览与用户明确确认范围到PROTOTYPE-REVIEW/PARITY，再实现已确认模块。模型独立于页面/流程，稳定ID/来源/主体/状态/revision与读模型/命令API分开；布局改变、新指标、源更正、流程先后变化需有演进示例与迁移/兼容边界。HTML可用模拟adapter，不宣称生产数据/API已实现。
+DESIGN-SESSION 未开（无人值守）：以两套参考基准（breast v0.4 + aml v0.2 #mind）+ 家族移植样板 cervical 为视觉与结构依据，晨审逐项追认；未确认模块不记为开发完成。
