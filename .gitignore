@@ -3,11 +3,5 @@ node_modules/
 .DS_Store
 .env
 .env.*
-!.env.example
-_private/
-input/
-output/
-*.sqlite
-*.sqlite-wal
-*.sqlite-shm
-*.db
+.secrets
+.secrets/

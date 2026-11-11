@@ -1,31 +1,36 @@
-/* M3 schema 测试：内存全建 + 判读列 0 + freeze sha256 一致 + 演示数据可装载 */
+/* M3 schema 测试：内存全建（0001+0002）+ 判读列 0 + freeze sha256 一致 + 演示数据可装载 */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { DatabaseSync } from 'node:sqlite'
 import { createHash } from 'node:crypto'
+import { DatabaseSync } from 'node:sqlite'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const SQL = readFileSync(join(ROOT, 'schema/0001_initial.sql'), 'utf8')
+const SCHEMA_DIR = join(ROOT, 'schema')
+
+function schemaFiles() {
+  return readdirSync(SCHEMA_DIR).filter((f) => /^\d{4}_.*\.sql$/.test(f)).sort()
+}
 
 function build() {
   const db = new DatabaseSync(':memory:')
-  db.exec(SQL)
+  for (const f of schemaFiles()) db.exec(readFileSync(join(SCHEMA_DIR, f), 'utf8'))
   return db
 }
 
+const SQL1 = readFileSync(join(SCHEMA_DIR, '0001_initial.sql'), 'utf8')
 const EXPECTED_TABLES = ['subjects', 'section_titles', 'metric_defs', 'lab_results', 'metric_group_titles', 'reports', 'hospitals', 'visit_questions', 'mind_notes', 'viewpoints', 'documents', 'meds', 'flare_events', 'infusion_events', 'exam_events', 'cost_records', 'profile_facts', 'import_batches', 'import_candidates', 'import_conflicts']
 
-test('schema：内存全建（20 表）', () => {
+test('schema：内存全建（0001+0002 共 20 表）', () => {
   const db = build()
   const rows = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY rowid").all()
   assert.equal(rows.length, 20, `建表数 ${rows.length} != 20`)
   for (const t of EXPECTED_TABLES) assert.ok(rows.some(r => r.name === t), `缺表 ${t}`)
 })
 
-test('schema：判读列 0（diagnosis/risk_level/stage/grade/score/activity 类派生判定不入库）', () => {
+test('schema：判读列 0（diagnosis/risk_level/stage/grade/score/activity/next_due 类派生判定不入库）', () => {
   const db = build()
   const banned = ['diagnosis', 'risk_level', 'stage', 'grade', 'score', 'activity', 'severity_level', 'is_conclusion', 'next_due', 'eligible', 'suitability']
   const hits = []
@@ -60,10 +65,19 @@ test('schema：更正链（ver + superseded_by）与 in_use 候选语义', () =>
   assert.equal(cand.in_use, 0, '候选缺省未采用，不进事实层')
 })
 
-test('schema：freeze-contract sha256 与文件一致', () => {
+test('schema：freeze-contract sha256 与 0001 文件一致', () => {
   const contract = readFileSync(join(ROOT, 'schema/freeze-contract.md'), 'utf8')
-  const sha = createHash('sha256').update(SQL).digest('hex')
+  const sha = createHash('sha256').update(SQL1).digest('hex')
   assert.ok(contract.includes(sha), 'freeze-contract 里的 sha256 必须与 0001_initial.sql 实际 hash 一致')
+})
+
+test('schema：0002 迁移修复 exam_events 外键（report_id 软引用，可开库）', () => {
+  const db = build()
+  const cols = db.prepare('PRAGMA table_info(exam_events)').all().map(c => c.name)
+  assert.ok(cols.includes('report_id'), 'exam_events.report_id 存在')
+  db.prepare("INSERT INTO exam_events (profile_key, exam_date, kind, org, finding_text, report_id) VALUES ('p1', '2026-05-15', '神经传导', '示例医院', '原文', 'rep-1')").run()
+  const row = db.prepare('SELECT report_id FROM exam_events').get()
+  assert.equal(row.report_id, 'rep-1', '软引用可写（不依赖 reports 表存在对应行）')
 })
 
 test('演示数据（唯一源）可整体装载且两套档案字段齐备', () => {
@@ -78,9 +92,10 @@ test('演示数据（唯一源）可整体装载且两套档案字段齐备', ()
   }
   assert.ok(data.profiles[1].flares.length >= 5, 'B 档复发多次')
   assert.ok(data.profiles[1].infusions.filter(x => x.kind === '免疫球蛋白输注').length >= 4, 'B 档输注 ≥4 次')
-  const privFlare = data.profiles[1].flares.some(f => f.private)
-  const privLab = data.profiles[1].labs.some(l => l.private)
-  assert.ok(privFlare && privLab, '私密标记两档均有')
+  const priv = (list) => (list || []).some(x => x.private)
+  const a = data.profiles[0], b = data.profiles[1]
+  assert.ok(priv(a.flares) && priv(a.labs) && priv(a.reports) && priv(a.questions) && priv(a.mind.feel), 'A 档私密五类齐')
+  assert.ok(priv(b.flares) && priv(b.labs) && priv(b.reports) && priv(b.questions) && priv(b.mind.feel), 'B 档私密五类齐')
 })
 
 test('metricDefs 与 schema metric_defs 语境一致（category 四组、无阈值列）', () => {
@@ -92,7 +107,7 @@ test('metricDefs 与 schema metric_defs 语境一致（category 四组、无阈�
   assert.ok(cats.has('immun') && cats.has('hemogram') && cats.has('safety') && cats.has('vitals'), '四组分类')
   const db = build()
   const ins = db.prepare('INSERT INTO metric_defs (key, title, category, unit, color, ord) VALUES (?, ?, ?, ?, ?, ?)')
-  for (const d of defs) ins.run(d.key, d.title, d.category, d.unit, d.color, d.ord)
+  for (const d of defs) ins.run(d.db, d.title, d.category, d.unit, d.color, d.ord)
   const n = db.prepare('SELECT count(*) AS n FROM metric_defs').get()
   assert.equal(n.n, defs.length, '演示 metricDefs 全部可入库（列对齐）')
 })

@@ -14,13 +14,17 @@
   "files": [
     "dsh",
     "lib",
+    "public",
+    "schema",
+    "research",
+    "src",
     "assets",
     "cordis.patch.yml",
     "README.md",
     "NOTICE.md"
   ],
   "scripts": {
-    "check": "node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-primer-links.mjs && node scripts/check-agent-pane-contract.mjs . && node scripts/check-schema-words.mjs . && node scripts/check-wording.mjs .",
+    "check": "node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-agent-pane-contract.mjs . && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-schema-words.mjs . && node scripts/check-primer-links.mjs && node scripts/build-version.mjs --check && node scripts/build-client.mjs --check && node scripts/migrate-public.mjs --check && node scripts/check-public-tokens.mjs && node scripts/check-wording.mjs . && node scripts/check-ui-parity.mjs && node --disable-warning=ExperimentalWarning --test --test-concurrency=1 test/*.test.mjs",
     "check:version-literal": "node scripts/check-version-literal.mjs",
     "check:host": "node scripts/check-host-contract.mjs",
     "check:static-refs": "node scripts/check-static-refs.mjs",
@@ -32,14 +36,16 @@
     "test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 test/*.test.mjs",
     "build:public": "node scripts/migrate-public.mjs",
     "build:version": "node scripts/build-version.mjs",
-    "build": "node scripts/build-client.mjs && node scripts/migrate-public.mjs",
+    "build": "node scripts/build-version.mjs && node scripts/build-client.mjs && node scripts/migrate-public.mjs",
     "audit": "node scripts/check-conformance.mjs .",
     "release:check": "npm run check && npm run test && npm run audit",
     "pack:check": "npm pack --dry-run",
     "probe:artifact": "node scripts/serve-artifact.mjs",
     "probe:tabs": "python3 scripts/verify-tabs-on-artifact.py",
     "probe:page-view": "node scripts/probe-page-view.mjs",
-    "probe:primer": "node scripts/probe-disease-primer.mjs"
+    "probe:primer": "node scripts/probe-disease-primer.mjs",
+    "build:client": "node scripts/build-client.mjs",
+    "start": "node scripts/dev-server.mjs"
   },
   "dsh": {
     "bundle": {
@@ -65,5 +71,6 @@
   "engines": {
     "node": ">=22"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "check": "node --check dsh/index.js && node --check lib/client.js && node scripts/check-workbench-package.mjs . && node scripts/check-host-contract.mjs && node scripts/smoke-activate.mjs && node scripts/check-probe-coverage.mjs && node scripts/check-version-literal.mjs && node scripts/check-agent-pane-contract.mjs . && node scripts/check-static-refs.mjs && node scripts/check-choice-limit.mjs && node scripts/check-assertion-strength.mjs && node scripts/check-derivative-leftovers.mjs . && node scripts/check-trial-snapshot.mjs . --if-present && node scripts/check-schema-words.mjs . && node scripts/check-primer-links.mjs && node scripts/build-version.mjs --check && node scripts/build-client.mjs --check && node scripts/migrate-public.mjs --check && node scripts/check-public-tokens.mjs && node scripts/check-wording.mjs . && node scripts/check-ui-parity.mjs && node --disable-warning=ExperimentalWarning --test --test-concurrency=1 test/*.test.mjs"
 }

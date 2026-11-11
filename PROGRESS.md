@@ -3,7 +3,7 @@
 > 本文件按夜纲第 1 节维护：当前里程碑、已完成、下一步、阻塞、各闸口结论。
 > 判未完成看本文件尾部最新更新，不看头部。
 
-## 当前里程碑：M2 原型完成 → M3 数据模型进行中（2026-11-12 00:22）
+## 当前里程碑：M5 开发版完成（V1）→ M6 装机进行中（2026-11-12 01:26）
 
 ## 已完成（认领四步，原子化落盘）
 - BACKLOG 快照落盘：~/Downloads/night-logs-20261112/BACKLOG-snapshot-2319.md（2026-11-11 23:19）
@@ -44,3 +44,16 @@
 | --- | --- |
 | G1 | 通过（自动签认待晨审追认） |
 | G2 | 通过（自动签认待晨审追认；独立评审 P0 清零） |
+
+
+### 2026-11-12 01:26 · M3/M4/M5 完成
+- M3（d44e4de+）：schema 0001（20 表）+ **0002 修复 exam_events FK mismatch**（M5 集成实测发现，按纪律走新增迁移）+ freeze sha256 + test 11/11；G3 通过。
+- M4（37a8418）：unified-trial-mcp 实跑 **190 条**（ictrp 179 + chinadrugtrials 11；chictr_online FAILED 如实、TIMEOUT 1 不计查过）；四件套一致（manifest=jsonl=sqlite=190，hash 双对上）；一期不建匹配链路——临床页与设置 tab 同口径如实声明（快照已建、硬凑会造假符合度）。
+- M5：dsh 七件 .cidp 化 + src→build→lib（551 行三注入）+ test **39/39** + check exit 0 + audit **44/44** + dev-server 双形态实测（health/bootstrap/seed 落库）+ public 形态探针 10/10+13/13 + pack:check 46 文件；V1 通过（docs/signoffs/V1-自动签认.md）。
+- 过程修复：build-client 装载 id、migrate-public OLD 常量（含上游 pemphigus 残留）、ui-parity 引号口径、demo 成本金额数值还原、costs/exams 实体进读模型与三出口。
+
+### 闸口结论
+| 闸口 | 结论 |
+| --- | --- |
+| G1/G2/G3 | 通过（自动签认待晨审追认） |
+| V1 | 通过（自动签认；audit 44/44） |

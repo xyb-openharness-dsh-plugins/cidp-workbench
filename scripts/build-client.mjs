@@ -36,7 +36,7 @@ const banner = `/* 由 scripts/build-client.mjs 从 src/client.js 生成，勿�
 `;
 
 const out = `${banner}window.__ModuleLoader__.load({
-  id: "@xyb-community/pemphigus-workbench",
+  id: "@xyb-community/cidp-workbench",
   factory(require) {
     const React = require('react')
     /* 注入点：与 lib/layout.js 同源，客户端不许另写一份 0.65 */

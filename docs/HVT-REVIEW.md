@@ -1,15 +1,15 @@
-# <癌种>工作台 HVT 需求审核（待填写）
+# CIDP 工作台 HVT 需求审核（夜间自动版 · 待晨审追认）
 
 > 本文件是审核记录，不是需求本身。填写前先读 `skills/hvt-requirement-review/SKILL.md`
-> 与 `docs/15-HVT-REVIEW.md`。状态：**未开始**。
+> 与 `docs/15-HVT-REVIEW.md`。状态：夜间自动完成（非用户确认）。
 
-日期：待填写。审核对象：SPEC v___、SCENARIOS v___、CORE-MODULES v___、SCHEMA v___、ACCEPTANCE v___。
+日期：2026-11-12。审核对象：SPEC v0.1、SCENARIOS v0.1、INTERACTION-DESIGN v0.1、schema 0001+0002、DEV-REQUIREMENTS-2026-11-12。
 
 审核范围：`docs/`（排除 `_archived/`、`reference/`）。本次**未**做：用户访谈、临床审核、原型逐页确认、实机安装。
 
 ## 0. 结论
 
-一句话：待填写（当前最该补什么，不补会做错什么）。
+一句话：五层结构齐（场景→路径→组件→数据→验收），缺口集中在「未验证的真实宿主层」——AI 面板激活/目录选择/写入闭环三项必须 Desktop 实机走查（V3），本地全绿不等于装机可用。
 
 | 级别 | 条数 | 含义 |
 | --- | --- | --- |
