@@ -3,7 +3,7 @@
 > 本文件按夜纲第 1 节维护：当前里程碑、已完成、下一步、阻塞、各闸口结论。
 > 判未完成看本文件尾部最新更新，不看头部。
 
-## 当前里程碑：M6 装机完成（V2 通过、V3 服务层已验）→ M7/M8 草稿（2026-11-12 00:50）
+## 当前里程碑：M0–M9 全链完成（2026-11-12 01:25，晨审追认中）
 
 ## 已完成（认领四步，原子化落盘）
 - BACKLOG 快照落盘：~/Downloads/night-logs-20261112/BACKLOG-snapshot-2319.md（2026-11-11 23:19）
@@ -69,3 +69,18 @@
 | --- | --- |
 | V2 | 通过（自动签认） |
 | V3 | 服务层已验（真机直查）· UI 级走查待人工 |
+
+
+### 2026-11-12 01:25 · M9 完成 + 验收巡检 + 晨审报告
+- 验收巡检：USER-ACCEPTANCE-AUTOFIX A–F 全类通过（docs/signoffs/ACCEPTANCE-AUTOFIX-巡检-20261112.md）。
+- M9 回流：starter rc.39（a9c4602）——init 骨架补真实 AI 面板接线（L90，fresh init 冒烟 exit 0）+ LESSONS L90–L92 + CHANGELOG 记回收；starter test 67/67 + check-starter 229 pass（本地 commit 未推送）。
+- MORNING-REVIEW.md 落盘（六节）。
+- git：全部 commit 已推 origin/main（私有仓 9d036a0）。
+
+### 闸口结论（终版）
+| 闸口 | 结论 |
+| --- | --- |
+| G1/G2/G3/V1/V2 | 通过（自动签认待晨审追认） |
+| V3 | 服务层真机已验 · UI 级走查待人工 |
+| M7/M8 | 草稿冻结（docs/release-draft/，未发布） |
+| M9 | 完成（starter rc.39） |
