@@ -39,7 +39,8 @@ window.DEMO_DATA = {
         医生行动计划原话: '手脚麻木加重或走不稳的时候，当天联系我；不要自己调整剂量。（李医生 2026-10-20 门诊原话照录）'
       },
       flares: [
-        { id: 'a-f1', start: '2026-09-05', end: null, trigger: '未知', note: '麻木从脚开始，慢慢向上；医生说这就是这次的主要问题（事实描述）', private: false }
+        { id: 'a-f1', start: '2026-09-05', end: null, trigger: '未知', note: '麻木从脚开始，慢慢向上；医生说这就是这次的主要问题（事实描述）', private: false },
+        { id: 'a-f2', start: '2026-10-30', end: '2026-11-05', trigger: '（私密示例）熬夜加班后', note: '短暂加重，两天好转，未就医仅自己记', private: true }
       ],
       labs: [
         { id: 'a-l1', metric: 'IGG', date: '2026-10-21', value: 18.2, unit: 'g/L', method: '免疫比浊', org: '示例市第一医院', private: false },
@@ -47,7 +48,8 @@ window.DEMO_DATA = {
         { id: 'a-l3', metric: 'WBC', date: '2026-10-21', value: 7.4, unit: '×10⁹/L', method: '血常规 五分类', org: '示例市第一医院', private: false },
         { id: 'a-l4', metric: 'FPG', date: '2026-10-21', value: 5.8, unit: 'mmol/L', method: '己糖激酶法', org: '示例市第一医院', private: false },
         { id: 'a-l5', metric: 'GRIP', date: '2026-11-08', value: 21, unit: 'kg', method: '自测（血压计法，方法待统一）', org: '自录', private: false },
-        { id: 'a-l6', metric: '体重', date: '2026-11-08', value: 68.0, unit: 'kg', method: '自录', org: '自录', private: false }
+        { id: 'a-l6', metric: '体重', date: '2026-11-08', value: 68.0, unit: 'kg', method: '自录', org: '自录', private: false },
+        { id: 'a-l7', metric: 'HB', date: '（私密示例）十月外院', value: '（数值未记）', unit: 'g/L', method: '自述外院', org: '外院（未核对）', private: true }
       ],
       infusions: [
         { id: 'a-t1', date: '2026-10-20', kind: '免疫球蛋白输注', name: 'IVIG 首轮（剂量与天数见出院小结，原文照录）', note: '输注中轻微头痛，护士减慢滴速后好转（事实描述）', private: false },
@@ -63,14 +65,16 @@ window.DEMO_DATA = {
         { id: 'a-m1', name: '（无长期用药记录）', schedule: '医生说先观察，暂不开药（原话照录）', since: '2026-10-20', note: '合成示例' }
       ],
       questions: [
-        { id: 'a-q1', addedOn: '2026-11-10', q: '下一轮输注大概什么时候？需要提前查什么吗？', answered: false, private: false }
+        { id: 'a-q1', addedOn: '2026-11-10', q: '下一轮输注大概什么时候？需要提前查什么吗？', answered: false, private: false },
+        { id: 'a-q2', addedOn: '2026-11-09', q: '（私密示例）脚麻影响开车，要不要跟单位说？', answered: false, private: true }
       ],
       hospitals: [
         { id: 'a-h1', name: '示例市第一医院', dept: '神经内科', contact: '电话见挂号单（未录入）', ver: 1 }
       ],
       reports: [
         { id: 'a-r1', title: '肌电图报告（2026-09-18）', date: '2026-09-18', kind: '检查', source: '原件已登记', keydesc: '医生批注「符合周围神经受累」（照录）', private: false },
-        { id: 'a-r2', title: '腰穿报告', date: '（日期未知）', kind: '检查', source: '未取得原件', keydesc: '', private: false }
+        { id: 'a-r2', title: '腰穿报告', date: '（日期未知）', kind: '检查', source: '未取得原件', keydesc: '', private: false },
+        { id: 'a-r3', title: '（私密示例）外院肌电图单（2026-11-02）', date: '2026-11-02', kind: '检查', source: '未核对', keydesc: '', private: true }
       ],
       docs: [
         { id: 'a-d1', name: '2026-10-20 门诊病历', date: '2026-10-20', type: '病历', state: '已登记' },

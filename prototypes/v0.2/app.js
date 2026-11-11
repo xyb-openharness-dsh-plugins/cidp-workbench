@@ -1,4 +1,4 @@
-/* 小髓宝 MyelinPal · CIDP工作台原型 v0.2
+/* 小髓宝 MyelinPal · CIDP工作台原型 v0.1
  * 结构对齐家族基准：小粉宝 v0.4（hero/五Tab/指标卡3D/primer 接线）、小橙宝 v0.2（导航分组/泳道/AI 面板）。
  * 非肿瘤语义：复发—缓解表达；无病期/线序/疗效/预后；阈值一律【待核】。
  * 数据唯一源：demo-data.js；页面不写死业务数字。全部为合成示例。
@@ -827,7 +827,7 @@
     openDialog('设置', body)
   }
   function setWorkspace() {
-    return '<section class="card"><h3>业务资料根目录</h3><p>当前（示意值）：<code>DSH 资料目录 / cold-agglutinin</code></p>' +
+    return '<section class="card"><h3>业务资料根目录</h3><p>当前（示意值）：<code>DSH 资料目录 / cidp</code></p>' +
       '<button class="soft" data-action="open-store">更改位置…</button>' +
       '<p class="notice warn">口径：拒绝主目录、桌面、下载根目录、tmp 作为资料目录；源码目录不是资料目录。</p>' +
       '<div class="grid three"><div class="card"><b>原件区</b><p class="small-note">0 个文件 · 示意</p></div><div class="card"><b>派生区</b><p class="small-note">0 个文件 · 示意</p></div><div class="card"><b>数据库</b><p class="small-note">未创建 · 示意</p></div></div>' +
@@ -845,10 +845,10 @@
   function setClinical() {
     var snap = window.DEMO_DATA.snapshotMeta || { count: 0, date: null }
     return '<section class="card"><h3>临床数据库</h3>' +
-      '<p>快照状态：<b>本台裁剪临床试验线（0 条）</b></p>' +
+      '<p>快照状态：<b>本台临床试验线状态见下方声明（快照 0 条）</b></p>' +
       '<h3 style="margin-top:10px">裁剪声明（如实，不静默缺失）</h3>' +
-      '<p class="small-note">本台未接入临床试验快照：CIDP登记研究数量极少，统一检索通道对罕见血液病召回不可靠；理由全文见 docs/DEV-REQUIREMENTS §三。若你的医生提到某项登记研究，直接把登记号告诉医生核对。</p>' +
-      '<p class="small-note">继发病因（淋巴增殖性疾病）随访提醒属于档案页「确诊依据」范围，不在此处。</p>' +
+      '<p class="small-note">本台未接入临床试验快照：CIDP登记研究数量极少，统一检索通道对罕见病召回不可靠；理由全文见 docs/DEV-REQUIREMENTS §四。若你的医生提到某项登记研究，直接把登记号告诉医生核对。</p>' +
+      '<p class="small-note">激素安全监测（血糖、血脂等）随访提醒属于档案页「并发症筛查」范围，不在此处。</p>' +
       '<div class="actions" style="margin-top:8px"><button class="soft" data-action="go" data-page="records">去看病情档案 →</button></div></section>'
   }
   function pageClinical() {
@@ -857,8 +857,8 @@
   function clinicalNotice() {
     return '<section class="card"><h3>本台未接入临床试验匹配（如实裁剪）</h3>' +
       '<ul>' +
-      '<li>理由一：CIDP（CIDP）登记研究数量极少，候选池口径会长期是「已载个位数」。</li>' +
-      '<li>理由二：统一检索通道对罕见血液病召回不可靠，「查不到」会被误读成「没有研究」。</li>' +
+      '<li>理由一：CIDP 登记研究数量极少，候选池口径会长期是「已载个位数」。</li>' +
+      '<li>理由二：统一检索通道对罕见周围神经病召回不可靠，「查不到」会被误读成「没有研究」。</li>' +
       '<li>理由三：本台的电生理与化验字段与登记研究常见入排字段不对齐，硬凑会造出假符合度。</li>' +
       '</ul>' +
       '<p class="notice plain">如果你的医生提到某项临床研究：直接把登记号（如 NCT 编号）写给医生核对；本台不代你判断「能不能参加」。</p>' +
