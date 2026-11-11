@@ -1,0 +1,6 @@
+- insert:
+    - id: cidp-main
+      name: "@xyb-community/cidp-workbench"
+      # 接线前置：宿主把业务资料根目录指向 dshHomePath('cidp')
+      config:
+        root: !!js dshHomePath('cidp')
