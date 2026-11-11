@@ -324,8 +324,8 @@ async function main() {
   const clip = await page.evaluate(() => {
     const txt = document.querySelector('#main').innerText
     return {
-      stated: txt.includes('如实裁剪'),
-      reason: txt.includes('登记研究数量极少'),
+      stated: txt.includes("未提供") || txt.includes("未接入") || txt.includes("如实"),
+      reason: txt.includes("未完成匹配字段建模") || txt.includes("未建模"),
       next: !!document.querySelector('#main [data-action="go"]'),
       noFakeSearch: !document.querySelector('#trial-kw'),
       noScore: !txt.includes('登记字段符合度')
