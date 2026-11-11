@@ -95,9 +95,9 @@ async function main() {
     // 打开第一层。用程序化 click：puppeteer 的 page.click 会先 scrollIntoViewIfNeeded，
     // 那会把主页滚回顶部，A5 就永远测不出真问题（2026-10-25 实测踩到）。
     const clickSel = sel => page.evaluate(s => document.querySelector(s)?.click(), sel)
-    await clickSel('[data-open="pathology"]')
+    await clickSel('[data-open="report"]')
     await page.waitForSelector('.pv-overlay:not([hidden])', { timeout: 3000 })
-    await page.waitForFunction(() => document.querySelector('.pv-title')?.textContent?.includes('病理报告'), { timeout: 3000 }).catch(() => {})
+    await page.waitForFunction(() => document.querySelector('.pv-title')?.textContent?.includes('报告详情'), { timeout: 3000 }).catch(() => {})
 
     // A1 宿主不滚，滚的是 .pv-body
     // 2026-10-25 改严两次，记下来免得以后再踩：
@@ -144,7 +144,7 @@ async function main() {
     const a4open = await page.evaluate(() => !!document.querySelector('.pv-panel')?.contains(document.activeElement))
     check('A4a', '打开后焦点进入层内（不留在 body）', a4open)
 
-    // 进第二层（病理报告 → 报告原文）
+    // 进第二层（报告详情 → 报告原文）
     await page.evaluate(() => [...document.querySelectorAll('.pv-body .pv-btn')].find(b => b.textContent.includes('原文'))?.click())
     await page.waitForFunction(() => document.querySelector('.pv-title')?.textContent?.includes('原文'), { timeout: 3000 }).catch(() => {})
     const depth3 = await page.evaluate(() => document.querySelectorAll('.pv-crumb').length)
@@ -157,7 +157,7 @@ async function main() {
       open: !document.querySelector('.pv-overlay')?.hidden,
       title: document.querySelector('.pv-title')?.textContent?.trim()
     }))
-    check('A2', 'Esc 只退一层（三层 → 二层，浮层仍开）', afterEsc.open && afterEsc.title === '病理报告', JSON.stringify(afterEsc))
+    check('A2', 'Esc 只退一层（三层 → 二层，浮层仍开）', afterEsc.open && afterEsc.title === '报告详情', JSON.stringify(afterEsc))
 
     // A3 浏览器返回键等价 back()
     await page.goBack()
@@ -179,12 +179,21 @@ async function main() {
       const r = document.querySelector(s).getBoundingClientRect()
       return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
     }, sel)
+    // mini 图在首屏折叠线下（B/A 档案看板较长）：先滚到按钮再量坐标（A5 的滚动位置断言在本段之前已完成，不受影响）
+    await page.evaluate(() => { const b = document.querySelector('[data-open="chart"]'); b.scrollIntoView({ block: 'center' }) })
+    await page.waitForFunction(() => { const b = document.querySelector('[data-open="chart"]'); if (!b) return false; const r = b.getBoundingClientRect(); return r.top > 0 && r.bottom < window.innerHeight }, { timeout: 3000 })
     const cardPt = await center('[data-open="chart"]')
     await page.mouse.click(cardPt.x, cardPt.y)
     await page.waitForSelector('.pv-overlay:not([hidden])', { timeout: 3000 })
     const closePt = await center('.pv-head-actions button:last-child')
     await page.mouse.click(closePt.x, closePt.y)
     await page.waitForFunction(() => document.querySelector('.pv-overlay')?.hidden === true, { timeout: 3000 }).catch(() => {})
+    // 关闭走 history 导航，Chrome 会异步把焦点重置回 body，应用在 60–1000ms 内多轮补焦：
+    // 断言语义是「焦点最终回到触发元素」，所以轮询等待而不是在 t=0 抢跑。
+    await page.waitForFunction(
+      () => { const el = document.activeElement; return !!el && el.dataset?.open === 'chart' },
+      { timeout: 1500 }
+    ).catch(() => {})
     const a4b = await page.evaluate(() => {
       const el = document.activeElement
       return { tag: el?.tagName, isTrigger: el?.dataset?.open === 'chart' }

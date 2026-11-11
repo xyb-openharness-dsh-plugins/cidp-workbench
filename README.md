@@ -1,44 +1,66 @@
 # 小髓宝 MyelinPal CIDP 工作台
 
-本机优先的慢性炎性脱髓鞘性多发性神经根神经病（CIDP）患者工作台：IVIG 周期输注记录、复发—缓解时间线、肌力与残疾自记口径（医生原文）、神经电生理复查档案、费用与医保负担记录、复诊问题清单
+本机优先的慢性炎性脱髓鞘性多发性神经根神经病（CIDP）患者工作台：免疫球蛋白输注按次登记、复发—缓解时间线、神经电生理复查档案、激素安全监测化验、费用与医保负担记录、复诊问题清单。
 
-这是接入骨架，尚未实现真实业务。初始化后先将 [项目设计提示词](docs/DESIGN-PROMPT.md) 交给当前Agent；它应展示实际路径并以已有用户/场景/流程素材对齐设计者、研究与取舍原则。癌种项目另有 [完整专用提示词](prompts/NEW-CANCER-WORKBENCH.md)。需求见 [BRIEF](docs/BRIEF.md)，规格见 [SPEC](docs/SPEC.md)，任务见 [TASKS](docs/TASKS.md)；先读 [AGENTS](AGENTS.md)。CLI输出交接与首问，实际对话由Agent接续。
+> 状态：M2 原型完成（prototypes/v0.1 渲染截图如下）· 全部为合成示例 · 未接入宿主 · 0 患者访谈 0 临床审核（如实标注）
 
-## 开发顺序
+## 疾病概要
 
-先共创SPEC和候选数据关系，再交付HTML交互工作台；由用户确认对应版本/模块后，复核SCHEMA/API并实现生产功能。确认记录见docs/PROTOTYPE-REVIEW.md；模型不依赖前端Tab/流程。模板骨架不是业务已确认。
+CIDP 是一种免疫介导的周围神经病：免疫系统错误地攻击神经纤维外的髓鞘，造成手脚麻木、无力，病程通常超过 8 周（慢性）；病程可呈慢性进展或复发—缓解。已列入国家罕见病目录（批次与序号以目录原件为准【待核】）。患病率数据中国尚缺乏大规模流行病学调查——本台界面只写「罕见病」，不冒充精确数字。
 
-## 当前能力
+工作台内顶栏「?」或首页文字按钮「疾病概要：CIDP是什么？」可打开四段整页概要（定义 / 医学资料规范和指南情况 / 治疗全景 / 趋势），每段带来源行（原件/官方入口/二次来源/nolink+note 四态如实标注）。概要只属解释层，不生成判断；固定出口含「不代表任何一项适合你」「需要问你的医生」。
 
-- 一个 DSH 工作台注册、认证的健康接口、版本展示与标准/大字切换。
-- 已明确选择布局：business-first。business-first 使用 customFrame；模板不创建会话或复制聊天。需要 AI 协助时按官方合同接入原生 conversation 和会话管理。
-- 无业务数据库、无演示患者、无真实密钥；所有业务页按确认 spec 逐项实现。
+## 关键功能（实渲截图 · v0.1）
 
-## 开发与本地验收
+![看板：复发中第 N 天 + 距上次输注](docs/screenshots/v0.1-dash-b.png)
+看板状态卡：**复发中第 15 天**由你标记的复发记录算出（不是医生判断）；「距上次输注 271 天」只报最近一次输注的事实间隔，不排程；近 90 天复发次数统计读时算，私密记录不计入并有标注。
 
-需要 Node.js 22+、Git、包管理器和可用 DSH Desktop；采用 SQLite 时另核验 node:sqlite 版本条件。宿主 peers 的范围仅是模板基线，请与目标 Desktop 实际依赖核对。
+![输注与治疗登记](docs/screenshots/v0.1-infusions.png)
+免疫球蛋白输注按次登记（日期/类别/内容照录/输注反应），三态保存（保存并继续录入/保存并关闭/取消）支持连续补录；医生交代的特殊要求照抄原话。
+
+![一图秀：化验趋势](docs/screenshots/v0.1-one-chart.png)
+一图秀左 rail：时间窗 chips + 按指标分类勾选（免疫球蛋白/血象/安全监测/体征）+ 复发带开关；每条线按该指标全期范围归一化并标注「不可比」；末点唯一数值标签；单点不连线；关闭复发带不改数据线。
+
+![指标卡折叠收态（正面）](docs/screenshots/v0.1-metric-cards-folded.png)
+![指标卡展开态（背面走势）](docs/screenshots/v0.1-metric-cards-flipped.png)
+指标检测页 3D 翻转卡（194px 定高，翻转不改变栅格高度）：正面最近值/较上次（同方法同机构可比组内）/来源；背面缩略走势；键盘可翻，`aria-pressed` 与 class 双通道。
+
+![疾病概要四段整页](docs/screenshots/v0.1-disease-primer.png)
+顶栏「?」打开的疾病概要整页面板：四段顺序固定，每段来源行按四态标注；「返回」与「✕」双入口，Esc 退一层，焦点回归。
+
+![检查与电生理登记](docs/screenshots/v0.1-exams.png)
+神经传导/肌电图按次登记：关键值原文照录；跨机构标注「方法+机构」可比组，不合并、不做差；判读归医生。
+
+其余页面：复发与症状（复发—缓解区间带泳道）、费用与医保（逐笔登记 + 读时算汇总）、复诊准备（问题清单 + 多医院卡片）、报告与原件（列表 + 原件墙）、感受与照护（私密支持）、病情档案（汇总 + 还缺什么）。
+
+## 怎么用
+
+- **看原型**：`cd prototypes/v0.2 && python3 -m http.server 8141`（或任意静态服务器）后打开 `http://127.0.0.1:8141/index.html`；直接双击 index.html 亦可（演示面板形态）。
+- **切换档案**：侧栏档案卡点开，A（刚确诊记录少）/ B（多年随访记录多）两套合成示例，整页数据、图表、卡片、时间线全部联动，不串档。
+- **AI 对话**：原型内为演示态（草稿只填不发，未接通明说）；开发版按 DSH 原生会话合同接入（无会话经宿主 `newSession` 创建，取消目录选择/失败均有面板提示）。
+- **私密标记**：任意记录可标私密；私密不进看板摘要、导出与 AI 上下文（三出口同一过滤），页内显示「N 条中私密 M 条」。
+
+## 数据与口径
+
+- **演示唯一源**：`prototypes/v0.2/demo-data.js`——页面不写死业务数字，指标元数据（metricDefs/metricGroups）也在这里，两套档案 A/B 全部合成示例。
+- **口径三句**：仅回顾，不解读；不同方法/机构不合并、不做差；解读归医生。
+- **非肿瘤表达**：复发—缓解（无病期/线序/疗效/生存期）；阈值一律【待核】；量表只录医生原文。
+- **证据分级**：疾病概要数据见 `docs/EVIDENCE-LEDGER.md`（E1–E7，全部如实标注来源级别；0 临床审核）。
+- **临床试验线**：按 M4 实测快照量级决定保留或裁剪；当前裁剪说明在「临床」页与设置·临床数据库 tab 同口径展示，不静默缺失。
+
+## 开发
 
 ```bash
 npm install
-npm run check
-npm run pack:check
-npm pack
+npm run check     # 静态门禁（含 check-agent-pane-contract 7 条 AI 面板契约、探针覆盖 21 路由对账）
+npm test          # （M5 起接入）
+npm run audit     # 家族一致性（版本/面板/检查链/文档/密钥）
+node scripts/probe-cidp-m2.mjs            # 全量 39 断言（自起服务）
+node scripts/probe-disease-primer.mjs --url http://127.0.0.1:<port>/prototypes/v0.2/index.html   # 疾病概要 10 断言
+node scripts/probe-page-view.mjs --url http://127.0.0.1:<port>/prototypes/v0.2/index.html        # 整页视图 13 断言
 ```
 
-`npm run check` 只保证"能装"（语法 + 装包合同），第一天就该是绿的。`npm run audit` 管"还是不是家族里的一员"：版本三处一致、`lib/layout.js` 面板参数单一来源、检查链完整、文档与密钥卫生，**只看代码与文件，不看文档自述**。新项目刚生成时 audit 必然有 fail，那是待办清单；交付/发布前必须清零，存在 fail 不得发布（`npm run release:check` 一次跑完两者）。
-
-跑的时间点：**每次改完**跑 `check`；**G2 原型确认后、写业务代码前**先跑一次 `audit`（这时缺的多是 `lib/layout.js`、`VERSION` 这类结构，越早补越便宜）；**交付/装机前**必须跑 `release:check`；**发布或投稿前**把 `npm run audit --json` 的 `xx/xx 通过 · N 失败 · M 待人工` 抄进 `docs/RELEASE.md` 的「家族一致性」一行。`✗` 是结构缺口（补齐，或在 `docs/DEV-REQUIREMENTS-<日期>.md` 写明偏离理由并由用户确认），`!` 是需人工判断的项（逐条给「已人工确认 / 确实没有」）。
-
-`npm install` 可能按 npm 策略解析 peer；勿为消警告重复打包宿主 runtime。客户端本身是单文件；引入 TS/组件库后需添加构建步骤并保留单文件导出。
-
-本地安装入口以当前 Desktop/CLI 帮助为准。安装后按 [docs/06-VALIDATION-AND-RELEASE.md](docs/06-VALIDATION-AND-RELEASE.md) 与官方自测完成真实 UI 验收，并填写 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)。静态检查不代表已加载。
-
-Logo 来源与使用限制见 assets/README.md。许可证、作者、仓库/发布策略由本项目维护者确认后填写；模板默认为 private/UNLICENSED。
-
-感谢小x宝社区、DataElement 社区，以及 sam / hhx / 繁华的 ❤️ 贡献。
-
-初始化来源记录见 `.dsh-wb-starter.json`。更新社区脚手架不会覆盖本项目；需要升级时先用相同确认配置在临时目录生成，再审阅差异。CLI 用法见 [docs/CLI-GIT.md](docs/CLI-GIT.md)。
-
-## HTML先行与数据演进
-
-业务开发前先交付HTML交互工作台原型、实际预览并由用户确认版本/hash和范围。数据设计先区分领域事实、流程状态和页面读模型，走查前端/流程变化、兼容与迁移；原型对象不直接作为表。见[规范](docs/14-HTML-AND-DATA-CONTRACT.md)。
+- 探针必须显式 `--url` 指向**本仓原型**（不带 --url 打的是 starter examples 参考页，等于没查——家族真实发生过）。
+- 结构基准：小粉宝 v0.4（hero/五Tab/指标卡3D/primer 接线）+ 小橙宝 v0.2（导航分组/泳道/AI 面板）；只抄结构与元素体系，不抄病种语义。
+- 文档：[SPEC](docs/SPEC.md) · [DEV-REQUIREMENTS](docs/DEV-REQUIREMENTS.md) · [INTERACTION-DESIGN](docs/INTERACTION-DESIGN.md) · [DIFF-MATRIX](docs/DIFF-MATRIX.md) · [DEV-PLAN](docs/DEV-PLAN.md) · [PROGRESS](PROGRESS.md)
+- 版本：包版本见 [VERSION](VERSION)；CHANGELOG 见 [CHANGELOG.md](CHANGELOG.md)。改包必升版。
