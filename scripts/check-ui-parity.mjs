@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { FILES, expected, OUT } from './migrate-public.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const BYTE_COPY = ['style.css', 'demo-data.js', 'primer-data.js', 'primer.js', 'primer.css'];
+const BYTE_COPY = ['style.css', 'demo-data.js', 'primer-data.js', 'primer.js', 'primer.css', 'trial-match.js'];
 const problems = [];
 
 for (const f of BYTE_COPY) {

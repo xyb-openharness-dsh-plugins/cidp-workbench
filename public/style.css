@@ -271,3 +271,13 @@ html.pv-lock { overflow: hidden; }
 .trial-detail .pv-head { border-bottom: 1px solid var(--line); }
 .trial-detail .pv-body { flex: 1; overflow: auto; padding: 14px; }
 @media (max-width: 900px) { .trial-detail { width: 100%; } }
+/* 35 号匹配卡（E4）：分数方块 + 登记元信息 + 硬性条件；移植自 pericarditis 家族形态 */
+.score-box { flex: 0 0 auto; width: 96px; min-height: 96px; border-radius: var(--radius-sm, 10px); background: var(--brand-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8px; }
+.score-box b { font-size: 28px; color: var(--brand-deep); }
+.score-box span { font-size: 11px; color: var(--muted); }
+.score-box.off { background: var(--paper); }
+.score-box.off b { color: var(--muted); font-size: 18px; }
+.match-head { display: flex; gap: 12px; align-items: flex-start; }
+.match-main { flex: 1; min-width: 0; }
+.match-side { flex: 0 0 auto; }
+@media (max-width: 900px) { .match-head { flex-direction: column; } }

@@ -43,9 +43,15 @@ export const API_BASE_HOSTED = `/api/${API_PREFIX}`
 export function createHostHandler(ctx, workbench) {
   const services = {
     version, displayVersion,
-    capabilities: ['bootstrap', 'health'],
+    capabilities: ['bootstrap', 'health', 'trials', 'saved-trials', 'data-root'],
     bootstrap: () => workbench.bootstrap(),
-    trialMatch: (keyword) => workbench.trialMatch(keyword),
+    trialMatch: (keyword, opts) => workbench.trialMatch(keyword, opts),
+    /* 资料目录：面板点「配置目录」走这三个，服务端再判一遍口径 */
+    dataRoot: () => workbench.dataRoot,
+    setDataRoot: (dir) => workbench.setDataRoot(dir),
+    savedTrials: () => workbench.savedTrials(),
+    saveTrial: (rec) => workbench.saveTrial(rec),
+    removeTrial: (id) => workbench.removeTrial(id),
   }
   const inner = createHandler({ apiBase: API_BASE_HOSTED, publicDir: PUBLIC_DIR, services })
   return (req, res) => {

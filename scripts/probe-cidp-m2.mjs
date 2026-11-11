@@ -19,7 +19,7 @@ const PORT = Number(argOf('--port') || 8141)
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json' }
 
 /* 全量叶子路由（与 app.js 顶层 ROUTES 一一对应；漏一条 check-probe-coverage 就会红） */
-const LEAF_ROUTES = ['dash', 'flares/list', 'flares/timeline', 'labs/list', 'labs/chart', 'infusions/log', 'infusions/meds', 'exams/list', 'exams/ncs', 'visits/prep', 'visits/hospitals', 'costs/log', 'costs/summary', 'reports/list', 'reports/wall', 'mind/feel', 'mind/family', 'records/archive', 'records/metrics', 'records/summary', 'clinical/notice']
+const LEAF_ROUTES = ['dash', 'flares/list', 'flares/timeline', 'labs/list', 'labs/chart', 'infusions/log', 'infusions/meds', 'exams/list', 'exams/ncs', 'visits/prep', 'visits/hospitals', 'costs/log', 'costs/summary', 'reports/list', 'reports/wall', 'mind/feel', 'mind/family', 'records/archive', 'records/metrics', 'records/summary', 'clinical/facts', 'clinical/search', 'clinical/match', 'clinical/saved']
 
 function findChrome() {
   if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH
@@ -319,19 +319,48 @@ async function main() {
   }))
   await page.evaluate(() => document.querySelector('[data-action="dialog-close"]').click())
   t('CFG1', '设置弹层打开且三 tab（工作区/MinerU/临床数据库）', cfg.open && cfg.tabs.join('|') === '工作区|文档解析（MinerU）|临床数据库' && cfg.hasMineru, cfg)
-  /* 裁剪态临床页断言：说明文字在、无假功能、有下一步 */
-  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.page = 'clinical'; a.state.sub.clinical = 'notice'; a.render() })
-  const clip = await page.evaluate(() => {
+  /* 35 号四段链路断言（E2–E8）：建档/检索/匹配/收藏，全部真实功能 */
+  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.profileId = 'demo-b'; a.state.page = 'clinical'; a.state.sub.clinical = 'facts'; a.render() })
+  const cl1 = await page.evaluate(() => {
     const txt = document.querySelector('#main').innerText
+    return { facts: txt.includes('只有「已确认入库」的字段参与匹配'), pref: !!document.querySelector('[data-action="trial-pref"]'), target: txt.includes('不进分母') }
+  })
+  t('CLIN1', '建档子页：入库字段表 + 偏好 chips + 「靶点不进分母」声明', cl1.facts && cl1.pref && cl1.target, cl1)
+  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.sub.clinical = 'search'; a.render() })
+  const cl2 = await page.evaluate(() => ({
+    kw: !!document.querySelector('#trial-kw'),
+    rows: document.querySelectorAll('#trial-result table tbody tr').length,
+    noScoreCol: !document.querySelector('#trial-result').innerText.includes('符合度')
+  }))
+  t('CLIN2', '检索子页：关键词表单 + 演示条目 5 行 + 无分数列（按条件排不掺分）', cl2.kw && cl2.rows >= 5 && cl2.noScoreCol, cl2)
+  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.sub.clinical = 'match'; a.render() })
+  const cl3 = await page.evaluate(() => {
+    /* 证据链在 details 折叠内：先展开第一张卡的链，再读 innerText（先证非空再断言） */
+    const d = document.querySelector('.match-card details.pick')
+    if (d && !d.open) { d.open = true }
+    const cards = document.querySelectorAll('.match-card').length
+    const txt = document.querySelector('#main').innerText
+    const box = document.querySelector('.score-box')
     return {
-      stated: txt.includes("未提供") || txt.includes("未接入") || txt.includes("如实"),
-      reason: txt.includes("未完成匹配字段建模") || txt.includes("未建模"),
-      next: !!document.querySelector('#main [data-action="go"]'),
-      noFakeSearch: !document.querySelector('#trial-kw'),
-      noScore: !txt.includes('登记字段符合度')
+      cards,
+      scoreLabel: box ? box.innerText.includes('登记字段符合度') : false,
+      fixedLine: txt.includes('项待确认'),
+      evidence: txt.includes('证据链') && txt.includes('记录里是：'),
+      hardTag: txt.includes('硬性'),
+      poolNote: txt.includes('不是全库扫描'),
+      disclaimer: txt.includes('入排标准请到官方登记页核对'),
+      banned: !txt.includes('入选概率') && !txt.includes('匹配指数')
     }
   })
-  t('CLIN0', '临床页裁剪说明：明示裁剪理由 + 下一步按钮 + 无假检索/假分数', clip.stated && clip.next && clip.noFakeSearch && clip.noScore, clip)
+  t('CLIN3', '匹配子页：匹配卡×5 + 符合度方块 + 固定行 n/m + 证据链三态 + 池口径 + 入排声明 + 禁词', cl3.cards >= 5 && cl3.scoreLabel && cl3.fixedLine && cl3.evidence && cl3.hardTag && cl3.poolNote && cl3.disclaimer && cl3.banned, cl3)
+  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.sub.clinical = 'match'; a.render(); document.querySelector('[data-action="trial-save"]').click() })
+  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.sub.clinical = 'saved'; a.render() })
+  const cl4 = await page.evaluate(() => {
+    const txt = document.querySelector('#main').innerText
+    return { rows: document.querySelectorAll('#main table tbody tr').length, noBar: !txt.includes('进度') || txt.includes('不画进度条'), onlyLocal: txt.includes('只存本机') }
+  })
+  t('CLIN4', '收藏子页：收藏 1 条进表 + 无进度条声明 + 只存本机', cl4.rows >= 1 && cl4.noBar && cl4.onlyLocal, cl4)
+  await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.sub.clinical = 'match'; a.render() })
   await page.evaluate(() => { const a = window.__CIDP_APP__; a.state.page = 'dash'; a.render() })
   const tiles = await page.evaluate(() => ({ tiles: document.querySelectorAll('.stat-tile').length }))
   t('TILE1', '看板关键指标最近值卡 ≥5 张（指标体系四组）', tiles.tiles >= 5, tiles)

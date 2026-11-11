@@ -20,7 +20,7 @@ const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const SRC = join(ROOT, 'prototypes/v0.2');
 const OUT = join(ROOT, 'public');
 const CHECK = process.argv.includes('--check');
-const FILES = ['index.html', 'app.js', 'style.css', 'demo-data.js', 'primer-data.js', 'primer.js', 'primer.css'];
+const FILES = ['index.html', 'app.js', 'style.css', 'demo-data.js', 'primer-data.js', 'primer.js', 'primer.css', 'trial-match.js'];
 
 const TITLE_OLD = '<title>小髓宝 MyelinPal · CIDP 工作台（交互原型 v0.1）</title>';
 const TITLE_NEW = '<title>小髓宝 MyelinPal · CIDP 工作台</title>\n<meta name="robots" content="noindex,nofollow">';
@@ -66,10 +66,19 @@ const BOOT_BLOCK = `
       app.state.flipped = {}
       app.render()
     }
-    window.__PERI_API_BASE__ = apiBase
+    window.__CIDP_API_BASE__ = apiBase
     console.info('[cidp] 已切换到本机数据库数据（' + b.profiles.length + ' 个档案）')
   }).catch(function (e) {
     console.warn('[cidp] bootstrap 不可用，继续使用演示数据：', String(e && e.message || e))
+  });
+  /* 资料目录真实状态：设置·工作区显示服务端返回的根（非示意值）；「更改位置」POST /api/root */
+  fetch(apiBase + '/api/root').then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status)
+    return r.json()
+  }).then(function (d) {
+    if (d && d.dir) window.__CIDP_ROOT__ = d.dir
+  }).catch(function (e) {
+    console.warn('[cidp] /api/root 不可用，目录显示保持示意：', String(e && e.message || e))
   });
 })();`
 

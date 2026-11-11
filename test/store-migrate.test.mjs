@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import { openStore, closeStore, migrate, tableNames, migrationFiles } from '../dsh/store.js';
 
-test('迁移：内存全建 20 表（0001 + 0002 重建 exam_events），幂等重跑不再执行', () => {
+test('迁移：内存全建 22 表（0001 + 0002 重建 exam_events + 0003 收藏与设置），幂等重跑不再执行', () => {
   const db = openStore(':memory:');
   try {
     const tables = tableNames(db);
-    if (tables.length !== 20) throw new Error(`表数 ${tables.length} ≠ 20`);
+    if (tables.length !== 22) throw new Error(`表数 ${tables.length} ≠ 22`);
     const again = migrate(db);
     if (again.ran !== 0) throw new Error(`迁移不幂等：重跑 ran=${again.ran}`);
     const ledger = db.prepare('SELECT migration, sha256 FROM schema_migrations ORDER BY rowid').all();

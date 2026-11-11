@@ -23,10 +23,10 @@ function build() {
 const SQL1 = readFileSync(join(SCHEMA_DIR, '0001_initial.sql'), 'utf8')
 const EXPECTED_TABLES = ['subjects', 'section_titles', 'metric_defs', 'lab_results', 'metric_group_titles', 'reports', 'hospitals', 'visit_questions', 'mind_notes', 'viewpoints', 'documents', 'meds', 'flare_events', 'infusion_events', 'exam_events', 'cost_records', 'profile_facts', 'import_batches', 'import_candidates', 'import_conflicts']
 
-test('schema：内存全建（0001+0002 共 20 表）', () => {
+test('schema：内存全建（0001+0002+0003 共 22 表）', () => {
   const db = build()
   const rows = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY rowid").all()
-  assert.equal(rows.length, 20, `建表数 ${rows.length} != 20`)
+  assert.equal(rows.length, 22, `建表数 ${rows.length} != 22`)
   for (const t of EXPECTED_TABLES) assert.ok(rows.some(r => r.name === t), `缺表 ${t}`)
 })
 

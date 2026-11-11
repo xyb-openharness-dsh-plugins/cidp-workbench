@@ -23,8 +23,17 @@ window.DEMO_DATA = {
     { key: 'safety', title: '安全监测（激素相关，医生安排）', items: ['FPG', 'TC', 'CR'] },
     { key: 'vitals', title: '体征与功能', items: ['GRIP', '体重'] }
   ],
-  /* 临床数据库 tab 与裁剪声明同口径：状态由 M4 实测后回填 */
-  snapshotMeta: { count: 0, date: null },
+  /* 临床数据库 tab 与临床页同口径：M4 实跑快照（2026-11-12，ictrp 179 + chinadrugtrials 11） */
+  snapshotMeta: { count: 190, date: '2026-11-12' },
+  /* 检索/匹配页的原型内置示例（35 号 E2：虚构条目，不是真实研究，不含可用登记号）；
+     开发版从本机快照（190 条）检索，示例只用于独立打开形态。 */
+  trialsDemo: [
+    { recordId: 'demo-t1', registryNumbers: [{ registry: 'NCT', value: 'NCT-DEMO-001' }], title: '（虚构示例）免疫球蛋白维持方案在 CIDP 复发预防中的登记研究', studyType: '介入性', source: '快照摘录', statusNote: '登记状态，未核实' },
+    { recordId: 'demo-t2', registryNumbers: [{ registry: 'NCT', value: 'NCT-DEMO-002' }], title: '（虚构示例）皮下免疫球蛋白（SCIG） home 输注治疗 CIDP 的有效性观察', studyType: '介入性', source: '快照摘录', statusNote: '登记状态，未核实' },
+    { recordId: 'demo-t3', registryNumbers: [{ registry: 'ChiCTR', value: 'ChiCTR-DEMO-003' }], title: '（虚构示例）CIDP 患者报告结局与复发—缓解节奏的队列登记', studyType: '观察性', source: '快照摘录', statusNote: '登记状态，未核实' },
+    { recordId: 'demo-t4', registryNumbers: [{ registry: 'EUCTR', value: 'EUCTR-DEMO-004' }], title: '（虚构示例）CIDP 神经传导指标长期监测的多中心登记', studyType: '观察性', source: '快照摘录', statusNote: '登记状态，未核实' },
+    { recordId: 'demo-t5', registryNumbers: [{ registry: 'NCT', value: 'NCT-DEMO-005' }], title: '（虚构示例）皮质激素减量方案在 CIDP 维持缓解中的比较研究', studyType: '介入性', source: '快照摘录', statusNote: '登记状态，未核实' }
+  ],
   profiles: [
     {
       id: 'demo-a',

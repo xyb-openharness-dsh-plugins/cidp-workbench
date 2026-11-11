@@ -30,9 +30,12 @@ const handler = createHandler({
   publicDir: join(dirname(fileURLToPath(import.meta.url)), '..', 'public'),
   services: {
     version, displayVersion, buildDate,
-    capabilities: ['bootstrap', 'profile', 'health'],
+    capabilities: ['bootstrap', 'profile', 'health', 'trials', 'saved-trials', 'data-root'],
     bootstrap: () => workbench.bootstrap(),
-    trialMatch: (keyword) => workbench.trialMatch(keyword),
+    trialMatch: (keyword, opts) => workbench.trialMatch(keyword, opts),
+    /* 资料目录：面板「更改位置」走 GET/POST /root，服务端口径再判一遍（与宿主形态同一条路径） */
+    dataRoot: () => workbench.dataRoot,
+    setDataRoot: (dir) => workbench.setDataRoot(dir),
     /* 与宿主形态共用同一个 Workbench 方法：dev 与装机的读模型必须是同一条路径，
        否则"本地验过、装进去不一样"（ATTR 第 6 类的常见成因）。 */
   },

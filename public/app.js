@@ -34,7 +34,7 @@
     reports: [['list', '最近报告'], ['wall', '原件墙']],
     mind: [['feel', '当下感受'], ['family', '家庭与照护']],
     records: [['archive', '病情档案'], ['metrics', '指标检测'], ['summary', '病情汇总']],
-    clinical: [['notice', '裁剪说明']]
+    clinical: [['facts', '建档'], ['search', '检索'], ['match', '匹配'], ['saved', '收藏与跟踪']]
   }
   var SUBTITLES = {
     dash: '状态与最近变化都由你记录的事实算出；本台只回顾，不解读。',
@@ -47,7 +47,7 @@
     reports: '报告与原件的登记处；私密报告不进导出与 AI 上下文。',
     mind: '只记录感受与家人支持事项，不做情绪评分。',
     records: '档案总览；派生数字（如缓解天数）读时计算，不落任何判定。',
-    clinical: '本台临床试验线按 M4 实测快照量级决定保留或裁剪；当前状态见本页说明，不假装有功能。'
+    clinical: '临床试验与登记快照（本机 190 条，2026-11-12）：登记状态一律未核实；匹配只做「登记字段符合度」，展示层计算，不是入组资格。'
   }
   /* 设置（乳腺癌式弹层）：三 tab，顶栏「设置」打开 */
   var CFG_TABS = [['workspace', '工作区'], ['mineru', '文档解析（MinerU）'], ['clinic', '临床数据库']]
@@ -75,6 +75,7 @@
     picked: (function () { var o = {}; (DATA.metricDefs || []).forEach(function (d) { o[d.key] = (d.key === "IGG" || d.key === "HB") }); return o })(),
     showEpisodes: true,
     flipped: {},
+    trialPref: 'all',
     agentOpen: false,
     sessions: {},
     draft: {}
@@ -181,7 +182,7 @@
     else if (page === 'reports') fact = '报告 ' + sharedOnly(p.reports).length + ' 份'
     else if (page === 'mind') fact = '感受记录 ' + sharedOnly(p.mind.feel).length + ' 条、家人记录 ' + sharedOnly(p.mind.family).length + ' 条'
     else if (page === 'records') fact = '档案字段 ' + Object.keys(p.profile).length + ' 项'
-    else if (page === "clinical") fact = "临床试验线状态见裁剪说明页（M4 实测后定）"
+    else if (page === "clinical") fact = "试验快照 190 条（登记状态未核实；匹配只做登记字段符合度，展示层计算）"
     else if (page === "dash") fact = "状态：" + (derivedStatus().mode)
     else if (page === "exams") fact = "共 " + sharedOnly(p.exams).length + " 条检查记录"
     else if (page === "costs") fact = "共 " + sharedOnly(p.costs).length + " 笔费用记录"
@@ -826,11 +827,16 @@
       '<div class="actions" style="margin-top:10px"><button class="primary" data-action="dialog-close">完成</button></div>'
     openDialog('设置', body)
   }
+  function currentRootLabel() {
+    if (window.__CIDP_ROOT__) return '<code>' + esc(window.__CIDP_ROOT__) + '</code>（由本机服务返回，非示意值）'
+    if (window.__CIDP_API_BASE__) return '读取中…'
+    return '<code>DSH 资料目录 / cidp</code>（示意值；独立打开原型未接后端）'
+  }
   function setWorkspace() {
-    return '<section class="card"><h3>业务资料根目录</h3><p>当前（示意值）：<code>DSH 资料目录 / cidp</code></p>' +
+    return '<section class="card"><h3>业务资料根目录</h3><p>当前：' + currentRootLabel() + '</p>' +
       '<button class="soft" data-action="open-store">更改位置…</button>' +
-      '<p class="notice warn">口径：拒绝主目录、桌面、下载根目录、tmp 作为资料目录；源码目录不是资料目录。</p>' +
-      '<div class="grid three"><div class="card"><b>原件区</b><p class="small-note">0 个文件 · 示意</p></div><div class="card"><b>派生区</b><p class="small-note">0 个文件 · 示意</p></div><div class="card"><b>数据库</b><p class="small-note">未创建 · 示意</p></div></div>' +
+      '<p class="notice warn">口径：拒绝主目录、桌面、下载根目录、tmp 作为资料目录；源码目录不是资料目录。切换失败时服务端会给出具体理由（目录还在时，上次选择的目录重开宿主仍生效）。</p>' +
+      '<div class="grid three"><div class="card"><b>原件区</b><p class="small-note">0 个文件 · 示意</p></div><div class="card"><b>派生区</b><p class="small-note">0 个文件 · 示意</p></div><div class="card"><b>数据库</b><p class="small-note">已建库（21 表 · 演示数据）</p></div></div>' +
       '<h3 style="margin-top:14px">备份与恢复</h3><p class="small-note">本原型未接入备份；开发版按 02 号契约提供。</p></section>'
   }
   function setMineru() {
@@ -843,27 +849,160 @@
       '<p class="notice warn">本仓未接入 MinerU：本页的勾选与保存都不联网。</p></section>'
   }
   function setClinical() {
-    var snap = window.DEMO_DATA.snapshotMeta || { count: 0, date: null }
+    var snap = window.DEMO_DATA.snapshotMeta || { count: 190, date: '2026-11-12' }
     return '<section class="card"><h3>临床数据库</h3>' +
-      '<p>快照状态：<b>已建成 190 条（2026-11-12 实跑）· 一期未提供匹配功能</b></p>' +
-      '<h3 style="margin-top:10px">裁剪声明（如实，不静默缺失）</h3>' +
-      '<p class="small-note">本台未接入临床试验快照：CIDP登记研究数量极少，统一检索通道对罕见病召回不可靠；理由全文见 docs/DEV-REQUIREMENTS §四。若你的医生提到某项登记研究，直接把登记号告诉医生核对。</p>' +
+      '<p>快照状态：<b>' + esc(String(snap.count)) + ' 条（' + esc(String(snap.date)) + ' 实跑：ictrp 179 + chinadrugtrials 11；chictr_online FAILED 如实）</b></p>' +
+      '<h3 style="margin-top:10px">试验线口径（35 号四段链路：建档 → 检索 → 匹配 → 收藏）</h3>' +
+      '<p class="small-note">匹配只做「登记字段符合度」（疾病相关性 + 研究类型偏好），展示层计算、不入库、无判读列；登记状态一律「未核实」，快照会过期；入排标准以官方登记页为准。临床页与这里的口径同源。</p>' +
       '<p class="small-note">激素安全监测（血糖、血脂等）随访提醒属于档案页「并发症筛查」范围，不在此处。</p>' +
-      '<div class="actions" style="margin-top:8px"><button class="soft" data-action="go" data-page="records">去看病情档案 →</button></div></section>'
+      '<div class="actions" style="margin-top:8px"><button class="soft" data-action="go" data-page="clinical">去临床页 →</button></div></section>'
   }
+  /* ---------- 页面：临床（35 号四段链路：建档 → 检索 → 匹配 → 收藏与跟踪） ---------- */
   function pageClinical() {
-    return head('临床试验（裁剪说明）', SUBTITLES.clinical, 'clinical') + subnav('clinical') + clinicalNotice()
+    var cur = subOf('clinical')
+    return head('临床', SUBTITLES.clinical, 'clinical') + subnav('clinical') +
+      (cur === 'facts' ? clinicalFacts() : cur === 'search' ? clinicalSearch() : cur === 'match' ? clinicalMatch() : clinicalSaved())
   }
-  function clinicalNotice() {
-    return '<section class="card"><h3>本台未接入临床试验匹配（如实裁剪）</h3>' +
-      '<ul>' +
-      '<li>理由一：一期未完成匹配字段建模——快照 190 条已留存（research/cidp/），但硬凑匹配会造出假符合度。</li>' +
-      '<li>理由二：登记状态一律「未核实」；「查不到」不等于「没有研究」，本台不代你判断「能不能参加」。</li>' +
-      '<li>理由三：本台的电生理与化验字段与登记研究常见入排字段不对齐，硬凑会造出假符合度。</li>' +
-      '</ul>' +
-      '<p class="notice plain">如果你的医生提到某项临床研究：直接把登记号（如 NCT 编号）写给医生核对；本台不代你判断「能不能参加」。</p>' +
-      '<p class="small-note">设置 · 临床数据库 tab 有同一份裁剪声明与快照状态。若后续家族为 CIDP 建立可靠快照通道，这里会按 35 号四段链路补齐并升版本。</p>' +
-      '<div class="actions"><button class="primary" data-action="go" data-page="records">去看病情档案 →</button><button class="soft" data-action="go" data-page="labs">看指标与趋势 →</button></div></section>'
+  /* ① 建档：只有已确认入库的字段参与匹配（35 号 E3①）；快照未结构化的字段如实写不能参与 */
+  function clinicalFacts() {
+    var p = profile()
+    var rows = [
+      ['诊断', (p.profile['确诊经过'] || '').slice(0, 40) + '…', '已确认入库', true],
+      ['治疗史', (p.meds || []).map(function (m) { return m.name }).join('、') || '未登记', (p.meds || []).length ? '已确认入库' : '待核对', !!(p.meds || []).length],
+      ['年龄', '未登记', '待核对', false],
+      ['性别', '未登记', '待核对', false]
+    ]
+    return '<section class="card"><h3>我的档案字段</h3>' +
+      '<div class="table-wrap"><table><thead><tr><th>字段</th><th>登记内容</th><th>状态</th></tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td style="white-space:normal">' + esc(r[1]) + '</td><td><span class="pill ' + (r[3] ? 'ok' : 'warn') + '">' + esc(r[2]) + '</span></td></tr>' }).join('') +
+      '</tbody></table></div><p class="scroll-hint">← 左右滑动查看 →</p>' +
+      '<p class="notice plain">只有「已确认入库」的字段参与匹配；未核对候选不参与。</p>' +
+      '<h3 style="margin-top:14px">本机快照能对照什么（如实）</h3>' +
+      '<p class="small-note">快照只存登记的结构化字段（题目/类型/来源/登记号，共 ' + esc(String((window.DEMO_DATA.snapshotMeta || {}).count || 190)) + ' 条）。能对照的目前只有 <b>疾病相关性</b> 与 <b>研究类型偏好</b> 两项；年龄、性别、电生理数值在登记页有，但本机快照未结构化——参与会造出假分数，等快照升级后开放【待核】。药物靶点即使有也<b>不进分母</b>：靶点是「药打哪里」，不等于你的条件。</p>' +
+      '<h3 style="margin-top:14px">匹配偏好（只影响排序与类型对照）</h3>' +
+      '<div class="chips" role="group" aria-label="研究类型偏好">' +
+      [['不限', 'all'], ['介入性', 'interventional'], ['观察性', 'observational']].map(function (x) {
+        return '<button aria-pressed="' + (state.trialPref === x[1]) + '" data-action="trial-pref" data-pref="' + x[1] + '">' + x[0] + '</button>'
+      }).join('') + '</div>' +
+      '<p class="small-note">偏好不是条件；选「不限」时类型不进可对照分母（可对照不足 2 条就不给符合度）。</p></section>'
+  }
+  /* ② 检索：按用户选的条件排，不掺分数 */
+  function clinicalSearch() {
+    return '<section class="card"><h3>检索快照</h3>' +
+      '<p class="small-note">按你选的条件排，<b>不做匹配打分，不预测入选机会</b>。登记状态一律「未核实」。</p>' +
+      '<div class="form-grid"><label>关键词（题目包含）<input type="search" id="trial-kw" placeholder="如 IVIG / 免疫球蛋白 / neuropathy"></label>' +
+      '<label>类型<select id="trial-type"><option value="">全部</option><option>介入性</option><option>观察性</option></select></label></div>' +
+      '<div class="actions" style="margin:8px 0 12px"><button class="primary" data-action="trial-search">检索快照</button></div>' +
+      '<div id="trial-result">' + trialRows((window.DEMO_DATA.trialsDemo || []).slice(0, 5)) + '</div>' +
+      '<p class="notice plain">原型内置 5 条<b>虚构示例</b>（不是真实研究，不含可用登记号）；开发版从本机快照（' + esc(String((window.DEMO_DATA.snapshotMeta || {}).count || 190)) + ' 条）检索，术语与状态以官方登记页为准。</p></section>'
+  }
+  function trialRows(rows) {
+    if (!rows.length) return '<div class="empty">没有命中的登记。换关键词，或回「建档」看可对照项。</div>'
+    return '<div class="table-wrap"><table><thead><tr><th>登记号</th><th>题目</th><th>类型</th><th>状态</th><th>来源</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var reg = (r.registryNumbers || []).map(function (x) { return x.value }).join(' / ') || r.recordId
+        return '<tr><td>' + esc(reg) + '</td><td style="white-space:normal;min-width:220px">' + esc(r.title || '') + '</td><td>' + esc(r.studyType || '—') + '</td><td>' + esc(r.statusNote || '登记状态，未核实') + '</td><td>' + esc(r.source || '') + '</td></tr>'
+      }).join('') + '</tbody></table></div><p class="scroll-hint">← 左右滑动查看 →</p>'
+  }
+  /* ③ 匹配：分层 + 逐条证据链；百分数只在展示层算（35 号 E3③/E4/E7） */
+  function matchPool() {
+    return window.__CIDP_TRIAL_POOL__ || (window.DEMO_DATA.trialsDemo || [])
+  }
+  function matchPoolNote() {
+    return window.__CIDP_TRIAL_POOL__
+      ? '候选池口径：本机快照 190 条中参与检索的前 ' + window.__CIDP_TRIAL_POOL__.length + ' 条（快照日期 2026-11-12）——<b>不是全库扫描</b>，也不是按你的条件全量筛选；可在「检索」页按关键词缩小。'
+      : '候选池口径：本页演示内置 5 条<b>虚构示例</b>；开发版为本机快照 190 条中参与检索的条目——<b>不是全库扫描</b>。'
+  }
+  function clinicalMatch() {
+    var pool = matchPool()
+    var cards = pool.map(function (r) { return matchCard(r) }).join('')
+    return '<section class="card"><h3>匹配结果</h3>' +
+      '<p class="notice plain">' + matchPoolNote() + ' 偏好：<b>' + esc(prefLabel()) + '</b>（可在「建档」改）。百分数只在展示层计算，不入库、不写任何判读列。</p>' +
+      '<div class="grid" id="match-cards">' + (cards || '<div class="empty">没有可匹配的候选。</div>') + '</div>' +
+      '<p class="notice plain">本机快照只存登记的结构化字段，<b>入排标准请到官方登记页核对</b>——这里的留白会被读成「已经判过了」。</p></section>'
+  }
+  function prefLabel() {
+    return { all: '研究类型不限', interventional: '偏好介入性', observational: '偏好观察性' }[state.trialPref] || '研究类型不限'
+  }
+  /* 纯函数匹配（window.CidpTrialMatch，lib 形态可被 node 测试断言） */
+  function matchCard(r) {
+    var M = window.CidpTrialMatch
+    var facts = { title: r.title || '', studyType: r.studyType || '' }
+    var items = M.items(facts, { type: state.trialPref })
+    var sc = M.score(items)
+    var reg = (r.registryNumbers || []).map(function (x) { return x.value }).join(' / ') || r.recordId
+    var hard = items.filter(function (i) { return i.hard && i.state === '✕' }).map(function (i) { return i.label })
+    var order = { '✕': 0, '?': 1, '✓': 2 }
+    var sorted = items.slice().sort(function (a, b) { return order[a.state] - order[b.state] })
+    var evidence = '<details class="pick"><summary>证据链（' + items.length + ' 条，不符合与待确认在前）</summary>' +
+      sorted.map(function (i) {
+        return '<div class="row-item"><span class="d">' + i.state + '</span><span class="txt"><b>' + esc(i.label) + '</b>' + (i.hard ? ' <span class="pill warn">硬性</span>' : '') +
+          '<div class="small-note">记录里是：' + esc(i.got) + ' · 条件要求：' + esc(i.req) + '</div></span></div>'
+      }).join('') +
+      '<p class="small-note">药物靶点不进分母：靶点是「药打哪里」，不等于你的检测条件。未结构化的条件写「需人工核对」，不冒充已判。</p></details>'
+    var scoreBox = sc.pct == null
+      ? '<div class="score-box off"><b>—</b><span>登记字段符合度 · ' + esc(sc.reason) + '</span></div>'
+      : '<div class="score-box"><b>' + sc.pct + '%</b><span>登记字段符合度</span></div>'
+    var saved = loadSaved().some(function (x) { return x.key === r.recordId })
+    return '<section class="card match-card"><div class="match-head">' + scoreBox +
+      '<div class="match-main"><h3>' + esc(r.title || '') + '</h3>' +
+      '<p class="small-note">' + esc(reg) + ' · ' + esc(r.studyType || '类型未登记') + ' · ' + esc((r.registryNumbers || [])[0] ? (r.registryNumbers[0].registry + ' 来源') : '快照') + '</p>' +
+      '<p class="small-note"><b>' + (sc.pct == null ? '— ' : sc.ok + ' / ' + sc.m + ' 项对得上 · ') + items.filter(function (i) { return i.state === '?' }).length + ' 项待确认</b>' + (hard.length ? ' · 硬性不符：' + esc(hard.join('、')) : '') + '</p>' +
+      '</div><div class="match-side">' + (hard.length ? '<span class="pill warn">硬性不符</span>' : '<span class="pill ok">无硬性不符</span>') + '</div></div>' +
+      evidence +
+      '<div class="actions" style="margin-top:8px"><button class="soft" data-action="trial-save" data-id="' + esc(r.recordId) + '">' + (saved ? '已在收藏' : '收藏跟踪') + '</button>' +
+      (r.sourceUrl ? '<a class="text-button" href="' + esc(r.sourceUrl) + '" target="_blank" rel="noopener">官方登记页 ↗</a>' : '') +
+      '<button class="text-button" data-action="trial-reject" data-id="' + esc(r.recordId) + '">拒收（零副作用）</button></div></section>'
+  }
+  /* ④ 收藏与跟踪：只存本机 {key, savedOn, state}；快照没有状态时间线，不画进度条 */
+  function clinicalSaved() {
+    var saved = loadSaved()
+    var pool = {}
+    ;(matchPool().concat(window.DEMO_DATA.trialsDemo || [])).forEach(function (r) { pool[r.recordId] = r })
+    return '<section class="card"><h3>我留的登记</h3>' +
+      (saved.length ? '<div class="table-wrap"><table><thead><tr><th>登记</th><th>收藏日期</th><th>阶段</th><th>操作</th></tr></thead><tbody>' +
+        saved.map(function (x) {
+          var t = (pool[x.key] || {}).title || x.title || x.key
+          return '<tr><td style="white-space:normal">' + esc(t) + '</td><td>' + esc(x.savedOn) + '</td><td>' + esc(x.state) + '</td>' +
+            '<td><button class="linkish" data-action="trial-cycle" data-id="' + esc(x.key) + '">下一阶段</button> <button class="linkish" data-action="trial-unsave" data-id="' + esc(x.key) + '">移出</button></td></tr>'
+        }).join('') + '</tbody></table></div><p class="scroll-hint">← 左右滑动查看 →</p>'
+        : '<div class="empty">还没有收藏的登记。<div class="actions" style="justify-content:center;margin-top:8px"><button data-action="sub" data-sub="match">去「匹配」里挑 →</button></div></div>') +
+      '<p class="notice plain">收藏存本机：原型预览只写 localStorage；开发版同时写入本机库的 saved_trial，换资料目录后仍在。快照没有登记状态变化时间线，<b>这里不画进度条</b>；阶段流转由你自己推进。</p></section>'
+  }
+  function loadSaved() {
+    try { return JSON.parse(global.localStorage.getItem('cidp-trial-saved-' + state.profileId) || '[]') } catch (e) { return [] }
+  }
+  function saveSaved(list) {
+    try { global.localStorage.setItem('cidp-trial-saved-' + state.profileId, JSON.stringify(list)) } catch (e) { }
+  }
+  /* 收藏双写：本机 localStorage 存"跟进阶段"（这是本台加的 UX 状态）；
+     开发版再把**基础记录**同步到 saved_trial（35 号 §一 段4），这样换目录/重装后收藏还在。
+     用 file:// 直接开原型时没有 apiBase，只走 localStorage——如实降级，不假装有服务端。 */
+  function syncSavedToServer(op, rec) {
+    var base = window.__CIDP_API_BASE__
+    if (!base) return
+    var url = base + '/api/saved-trials'
+    if (op === 'save' && rec && rec.recordId) {
+      fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(rec) }).catch(function () { })
+    } else if (op === 'remove') {
+      fetch(url + '?recordId=' + encodeURIComponent(rec), { method: 'DELETE' }).catch(function () { })
+    }
+  }
+  function mergeServerSaved() {
+    var base = window.__CIDP_API_BASE__
+    if (!base) return
+    fetch(base + '/api/saved-trials').then(function (r) { return r.ok ? r.json() : null }).then(function (body) {
+      var rows = (body && body.records) || []
+      if (!rows.length) return
+      var list = loadSaved()
+      var changed = false
+      rows.forEach(function (r) {
+        if (list.some(function (x) { return x.key === r.recordId })) return
+        list.push({ key: r.recordId, title: r.title || r.recordId, savedOn: (r.savedAt || '').slice(0, 10), state: '在跟' })
+        changed = true
+      })
+      if (changed) { saveSaved(list); if (state.page === 'clinical') render() }
+    }).catch(function () { })
   }
 
   function navIcons(key) {
@@ -1113,7 +1252,7 @@
     }
     else if (act === 'settings') { settingsModal('workspace') }
     else if (act === 'settings-tab') { settingsModal(btn.getAttribute('data-tab')) }
-    else if (act === 'open-store') { openDialog('资料目录', '<p>开发版中选择本机目录；口径：拒绝主目录、桌面、下载根目录、tmp。</p><p>本原型为示意，目录未真实挂载。</p>') }
+    else if (act === 'open-store') { openStoreDialog() }
     else if (act === 'about') { openDialog('原型操作说明', '<p>全部数据为合成示例（两套档案，侧栏可切换）。</p><p>顶部「?」打开整页疾病概要；每页「和 AI 讨论」只填草稿不发送。</p><p>私密记录不进看板摘要、导出与 AI 上下文。</p>') }
     else if (act === 'dialog-close') { $('#dialog').close() }
     else if (act === 'agent-toggle') { setAgent(!state.agentOpen) }
@@ -1147,6 +1286,26 @@
     else if (act === 'save-feel-continue' || act === 'save-feel-close') { saveFeel(act === 'save-feel-close') }
     else if (act === 'save-family-continue' || act === 'save-family-close') { saveFamily(act === 'save-family-close') }
     else if (act === 'hospital-edit') { toast('更正=新增版本（本原型演示入口；开发版打开表单并保留历史版本）') }
+    else if (act === 'save-root') { saveRoot() }
+    else if (act === 'trial-pref') { state.trialPref = btn.getAttribute('data-pref'); render() }
+    else if (act === 'trial-search') { doTrialSearch() }
+    else if (act === 'trial-save') {
+      var sid = btn.getAttribute('data-id')
+      var list = loadSaved()
+      if (!list.some(function (x) { return x.key === sid })) {
+        var src = matchPool().concat(window.DEMO_DATA.trialsDemo || []).find(function (r) { return r.recordId === sid }) || {}
+        list.push({ key: sid, title: src.title || '', savedOn: TODAY, state: '在跟' })
+        saveSaved(list)
+        syncSavedToServer('save', src && src.recordId ? src : { recordId: sid, title: src.title || '' })
+        render(); toast('已收藏；在「收藏与跟踪」里推进阶段')
+      } else toast('这条已在收藏里')
+    }
+    else if (act === 'trial-unsave') { saveSaved(loadSaved().filter(function (x) { return x.key !== btn.getAttribute('data-id') })); syncSavedToServer('remove', btn.getAttribute('data-id')); render() }
+    else if (act === 'trial-cycle') {
+      var list2 = loadSaved(); var it = list2.find(function (x) { return x.key === btn.getAttribute('data-id') })
+      if (it) { it.state = { '在跟': '准备问', '准备问': '已归档', '已归档': '在跟' }[it.state] || '在跟'; saveSaved(list2); render() }
+    }
+    else if (act === 'trial-reject') { toast('已拒收（零副作用）：没有写入任何状态，列表不变') }
     else if (act === 'flare-priv') {
       var f = p.flares.find(function (z) { return z.id === btn.getAttribute('data-id') })
       f.private = !f.private; render(); toast('私密标记已切换；三出口共用同一过滤')
@@ -1171,6 +1330,76 @@
     else if (act === 'pv-report') { openPvLayer('报告详情', reportDetailHtml(btn.getAttribute('data-id')), false, btn) }
     else if (act === 'pv-labs') { openPvLayer('化验记录', labsLayerHtml(), false, btn) }
   })
+  /* 临床检索：开发版优先本机快照 API，失败/独立打开回退内置示例（不裸 throw） */
+  function doTrialSearch() {
+    var kw = ($('#trial-kw') || {}).value || ''
+    var typeSel = ($('#trial-type') || {}).value || ''
+    var base = window.__CIDP_API_BASE__
+    var done = function (rows, note) {
+      var filtered = (rows || []).filter(function (r) { return !typeSel || (r.studyType || '').indexOf(typeSel) >= 0 })
+      $('#trial-result').innerHTML = trialRows(filtered) + (note ? '<p class="notice plain">' + esc(note) + '</p>' : '')
+    }
+    if (base) {
+      fetch(base + '/api/trials?keyword=' + encodeURIComponent(kw))
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
+        .then(function (d) {
+          var rows = d.records || []
+          if (rows.length && window.CidpTrialMatch) window.__CIDP_TRIAL_POOL__ = rows.slice(0, 50)
+          done(rows, d.available === false ? '快照不可用：' + (d.reason || '') : '共 ' + rows.length + ' 条命中 · 登记状态未核实')
+        })
+        .catch(function () { done(demoFilter(kw), '快照接口不可用，回退内置示例（虚构条目）。') })
+    } else {
+      done(demoFilter(kw), '原型内置示例（虚构条目）；开发版从本机快照检索。')
+    }
+  }
+  function demoFilter(kw) {
+    kw = (kw || '').trim()
+    return (window.DEMO_DATA.trialsDemo || []).filter(function (r) { return !kw || (r.title || '').indexOf(kw) >= 0 })
+  }
+  /* ---------- 资料目录：真实选择（GET/POST /root；服务端 checkDataDir 再判一遍口径） ---------- */
+  function openStoreDialog() {
+    var hasServer = Boolean(window.__CIDP_API_BASE__)
+    var body = '<section class="card"><h3>选择本机目录</h3>' +
+      '<label>资料目录（绝对路径）<input type="text" id="root-input" style="width:100%" placeholder="如 /Users/你/Documents/cidp-records" value="' + esc(window.__CIDP_ROOT__ || '') + '"></label>' +
+      '<p class="notice warn">口径：拒绝主目录、桌面、下载根目录、tmp 作为资料目录；源码目录不是资料目录。目录不存在时会自动创建。</p>' +
+      '<p class="err-msg" id="root-err" role="alert"></p>' +
+      (hasServer
+        ? '<div class="actions"><button class="primary" data-action="save-root">保存并切换</button><button data-action="dialog-close">取消</button></div>' +
+          '<p class="small-note">切换成功后立即生效：新库迁移 + 空库播种演示数据；切不过去会退回原目录并给出原因。</p>'
+        : '<p class="small-note">演示原型未接后端：此表单在开发版（dev-server / Desktop 装机）里真实生效；独立打开的页面不会挂载目录。</p>' +
+          '<div class="actions"><button data-action="dialog-close">关闭</button></div>') +
+      '</section>'
+    openDialog('资料目录', body)
+  }
+  function saveRoot() {
+    var input = $('#root-input')
+    var err = $('#root-err')
+    var base = window.__CIDP_API_BASE__
+    if (!input || !input.value.trim()) { err.textContent = '请填写绝对路径。'; return }
+    fetch(base + '/api/root', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ dir: input.value.trim() }),
+    }).then(function (r) {
+      return r.json().then(function (d) { return { ok: r.ok, data: d } })
+    }).then(function (res) {
+      if (!res.ok) { err.textContent = res.data.error || '切换失败'; return }
+      window.__CIDP_ROOT__ = res.data.dir
+      closeDialog()
+      toast('目录已切换：' + res.data.dir)
+      /* 重拉 bootstrap：新根的库（可能是空库新播种）整页刷新，不串旧数据 */
+      return fetch(base + '/api/bootstrap').then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() }).then(function (b) {
+        if (b && Array.isArray(b.profiles) && b.profiles.length && b.TODAY != null) {
+          window.DEMO_DATA.TODAY = b.TODAY
+          window.DEMO_DATA.profiles = b.profiles
+          window.__CIDP_TRIAL_POOL__ = null
+          var app = window.__CIDP_APP__
+          if (app) { app.state.profileId = b.profiles[0].id; app.state.page = 'dash'; app.state.sub = {}; app.state.flipped = {}; app.render() }
+        }
+      })
+    }).catch(function (e) { if (err) err.textContent = '切换失败：' + String(e && e.message || e) })
+  }
   function sharedIndex(list, shownIndex) {
     var shared = list.filter(function (z) { return !z.private })
     return list.indexOf(shared[shownIndex])
@@ -1303,6 +1532,11 @@
   global.pageMind = pageMind
   global.pageRecords = pageRecords
   global.pageClinical = pageClinical
+  /* 开发版启动后把 saved_trial 里的收藏并回本机列表（原型 file:// 下没有 apiBase，跳过） */
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mergeServerSaved)
+    else setTimeout(mergeServerSaved, 0)
+  }
 
   /* 探针钩子：只暴露只读视图与渲染入口，业务逻辑不外泄 */
   global.__CIDP_APP__ = {
@@ -1352,7 +1586,10 @@ const ROUTES = {
   'records/archive': pageRecords,
   'records/metrics': pageRecords,
   'records/summary': pageRecords,
-  'clinical/notice': pageClinical,
+  'clinical/facts': pageClinical,
+  'clinical/search': pageClinical,
+  'clinical/match': pageClinical,
+  'clinical/saved': pageClinical,
 };
 
 
@@ -1388,9 +1625,18 @@ const ROUTES = {
       app.state.flipped = {}
       app.render()
     }
-    window.__PERI_API_BASE__ = apiBase
+    window.__CIDP_API_BASE__ = apiBase
     console.info('[cidp] 已切换到本机数据库数据（' + b.profiles.length + ' 个档案）')
   }).catch(function (e) {
     console.warn('[cidp] bootstrap 不可用，继续使用演示数据：', String(e && e.message || e))
+  });
+  /* 资料目录真实状态：设置·工作区显示服务端返回的根（非示意值）；「更改位置」POST /api/root */
+  fetch(apiBase + '/api/root').then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status)
+    return r.json()
+  }).then(function (d) {
+    if (d && d.dir) window.__CIDP_ROOT__ = d.dir
+  }).catch(function (e) {
+    console.warn('[cidp] /api/root 不可用，目录显示保持示意：', String(e && e.message || e))
   });
 })();
