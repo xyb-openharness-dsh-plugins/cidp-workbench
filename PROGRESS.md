@@ -84,3 +84,16 @@
 | V3 | 服务层真机已验 · UI 级走查待人工 |
 | M7/M8 | 草稿冻结（docs/release-draft/，未发布） |
 | M9 | 完成（starter rc.39） |
+
+
+### 2026-11-12 06:50 · 0.2.0 验收返工轮（晨审反馈两项 + 并行会话合流）
+- 反馈①资料目录真选择：checkDataDir 口径校验（人话拒绝）+ /api/root GET/POST + Workbench.setDataRoot（切换/回滚/app_setting 持久化，0003）+ 设置页真表单（原型态诚实不挂载）；api-root.test 3 断言。
+- 反馈②35 号四段试验线：建档/检索/匹配/收藏四子页 + trial-match.js 纯函数 + saved_trial 双写（0004 + /api/saved-trials）+ check-trial-matching（--self-test 11/11）入链；开发版检索走本机快照 190 条（notFullScan 口径）。
+- **并行会话合流事件**：fbe7d66（0.1.2，另一会话同题返工）与本轮 0.2.0 在同一工作树交织——按「check 链为准合流」收束：22 表断言、顶栏配置目录（lib）+ 设置页更改位置（public）双入口共存、0003/0004 并存；CHANGELOG 三段（0.2.0/0.1.2/0.1.0）如实记两轮。
+- 门禁：check 0 · test 42/42 · audit 44/44 · probe 44/44 · 0.2.0 已装 Desktop profile + 重启验证（23 表）。
+- 已推送 origin/main 至 b718fee。
+
+### 闸口结论（0.2.0 轮）
+| 闸口 | 结论 |
+| --- | --- |
+| 返工①② | 通过（docs/signoffs/0.2.0-返工轮-自动签认.md，待晨审追认） |
