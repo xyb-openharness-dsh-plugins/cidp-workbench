@@ -3,7 +3,7 @@
 > 本文件按夜纲第 1 节维护：当前里程碑、已完成、下一步、阻塞、各闸口结论。
 > 判未完成看本文件尾部最新更新，不看头部。
 
-## 当前里程碑：M5 开发版完成（V1）→ M6 装机进行中（2026-11-12 01:26）
+## 当前里程碑：M6 装机完成（V2 通过、V3 服务层已验）→ M7/M8 草稿（2026-11-12 00:50）
 
 ## 已完成（认领四步，原子化落盘）
 - BACKLOG 快照落盘：~/Downloads/night-logs-20261112/BACKLOG-snapshot-2319.md（2026-11-11 23:19）
@@ -57,3 +57,15 @@
 | --- | --- |
 | G1/G2/G3 | 通过（自动签认待晨审追认） |
 | V1 | 通过（自动签认；audit 44/44） |
+
+
+### 2026-11-12 00:50 · M6 完成（V2 通过）
+- pack 0.1.0 tgz（46 文件）→ check-install 四要素（排除 DeepSeek Harness.app 干扰项）→ pnpm 装 Desktop profile（+1，兄弟 57 工作台完好）→ bundles 74 登记 → **AppleScript 重启宿主**（quit 16:41:49Z → 启动 16:41:53Z，本次段无激活失败）→ verify-desktop-load ✓（清单含本包、bundles 含本包）。
+- 真机库直查：`$DSH_HOME/cidp/cidp-workbench.sqlite` 21 表 + migrations 0001+0002 + subjects 2/flares 8/infusions 11/labs 32（宿主侧服务层真实播种，config.root 生效）。
+- V3 UI 级走查待人工（GUI 会话授权无法无人值守）——如实记录。
+
+### 闸口结论
+| 闸口 | 结论 |
+| --- | --- |
+| V2 | 通过（自动签认） |
+| V3 | 服务层已验（真机直查）· UI 级走查待人工 |
